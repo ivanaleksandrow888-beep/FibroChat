@@ -1,0 +1,62 @@
+[
+  {
+    "id": "75443e3e-7fca-42b0-bff4-2e0bf205287a",
+    "userId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "type": "DEVICE_APPROVAL_REQUIRED",
+    "title": "Новое устройство ожидает подтверждения",
+    "text": "Попытка входа с устройства «Windows · Chrome». Подтвердите его на уже доверенном устройстве.",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:46:55.758Z",
+    "readAt": null
+  },
+  {
+    "id": "272f214a-06fc-4854-8b46-22f24539d691",
+    "userId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "type": "DEVICE_APPROVAL_REQUIRED",
+    "title": "Новое устройство ожидает подтверждения",
+    "text": "Попытка входа с устройства «Windows · Chrome». Подтвердите его на уже доверенном устройстве.",
+    "details": {
+      "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5"
+    },
+    "createdAt": "2026-07-12T13:47:36.992Z",
+    "readAt": null
+  },
+  {
+    "id": "318b9ac8-934a-4cb3-b487-bb299ecc512d",
+    "userId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "type": "DEVICE_APPROVED",
+    "title": "Устройство подтверждено",
+    "text": "Устройство «Windows · Chrome» теперь доверенное.",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:06.453Z",
+    "readAt": null
+  },
+  {
+    "id": "b18a10e6-9c6d-4625-8896-f7b01301da55",
+    "userId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "type": "DEVICE_APPROVED",
+    "title": "Устройство подтверждено",
+    "text": "Устройство «Windows · Chrome» теперь доверенное.",
+    "details": {
+      "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5"
+    },
+    "createdAt": "2026-07-12T14:04:21.724Z",
+    "readAt": null
+  },
+  {
+    "id": "22476373-a979-4a5b-97f8-f58f7b0fe933",
+    "userId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "type": "SUPPORT_REPLY",
+    "title": "Ответ поддержки",
+    "text": "сейчас отправлю адрес",
+    "details": {
+      "ticketId": "3ded7474-112d-420d-912f-3b110e585813"
+    },
+    "createdAt": "2026-07-12T15:04:58.483Z",
+    "readAt": null
+  }
+]

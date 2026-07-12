@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FibroChat Federation Core</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <section id="auth-view" class="card auth-card">
+      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>Federation Core v0.2.0</p></div></div>
+      <div class="node-line"><span id="node-dot" class="dot"></span><span id="node-text">Проверка головного узла…</span></div>
+      <div class="tabs"><button id="register-tab" class="tab active" type="button">Регистрация</button><button id="login-tab" class="tab" type="button">Вход</button></div>
+      <form id="auth-form">
+        <label id="invite-field">Код приглашения<input id="invite" autocomplete="off" placeholder="FIBRO-OWNER-2026"></label>
+        <label>Никнейм<input id="nickname" autocomplete="username" placeholder="Например, Ivan"></label>
+        <label>Пароль<input id="password" type="password" autocomplete="current-password" placeholder="Минимум 8 символов"></label>
+        <label>Название этого устройства<input id="device-name" autocomplete="off" maxlength="80" placeholder="Например, Домашний компьютер"></label>
+        <button id="submit-button" class="primary" type="submit">Создать аккаунт</button>
+      </form>
+      <section class="vault-import-box">
+        <h3>Перенос ключей на это устройство</h3>
+        <p>Сначала импортируйте файл Key Vault, затем войдите обычным паролем.</p>
+        <label class="file-button">Выбрать файл Key Vault
+          <input id="vault-import-file" type="file" accept="application/json,.json">
+        </label>
+        <p id="vault-import-message" class="message"></p>
+      </section>
+      <section class="network-import-box">
+        <h3>Подключение к другой сети</h3>
+        <p>Выберите подписанный файл <code>.fibronet.json</code>. Клиент проверит его целостность и покажет адрес сети.</p>
+        <label class="file-button">Выбрать профиль сети
+          <input id="network-profile-file" type="file" accept="application/json,.json,.fibronet">
+        </label>
+        <div id="network-profile-result" class="network-profile-result hidden">
+          <strong id="profile-network-name">—</strong>
+          <small id="profile-network-id">—</small>
+          <a id="open-profile-network" class="mini-button" href="#" rel="noopener">Открыть эту сеть</a>
+        </div>
+        <p id="network-profile-message" class="message"></p>
+      </section>
+      <p id="auth-message" class="message"></p>
+    </section>
+
+    <section id="app-view" class="workspace hidden">
+      <aside class="sidebar card">
+        <header class="topbar">
+          <div class="brand"><div class="logo small">F</div><div><h2>FibroChat</h2><p id="current-role">Пользователь</p></div></div>
+          <button id="logout-button" class="ghost" type="button">Выйти</button>
+        </header>
+        <div class="me-card"><strong id="profile-nickname">—</strong><span id="profile-status">—</span><small id="profile-subscription">—</small><div class="subscription-meter"><span id="subscription-meter-bar"></span></div></div>
+        <section class="service-panel device-panel">
+          <div class="section-head"><div><h3>Доверенные устройства</h3><p id="device-summary">Загрузка…</p></div><button id="refresh-devices" class="icon-button" type="button">↻</button></div>
+          <div id="devices-list" class="devices-list"><p class="muted">Загрузка…</p></div>
+          <button id="logout-all-button" class="danger-button session-danger" type="button">Завершить все сессии</button>
+          <div class="vault-box">
+            <h4>Резервная копия ключей</h4>
+            <p>Файл зашифрован паролем аккаунта. Храните его отдельно и никому не отправляйте.</p>
+            <input id="vault-password" type="password" autocomplete="current-password" placeholder="Введите пароль аккаунта">
+            <button id="export-vault" class="mini-button" type="button">Скачать Key Vault</button>
+            <p id="vault-message" class="message"></p>
+          </div>
+        </section>
+        <section class="service-panel">
+          <div class="section-head"><div><h3>Уведомления</h3><p id="notification-count">Нет новых</p></div><button id="refresh-notifications" class="icon-button" type="button">↻</button></div>
+          <div id="notifications-list" class="notifications-list"><p class="muted">Загрузка…</p></div>
+        </section>
+        <section class="service-panel">
+          <div class="section-head"><div><h3>Поддержка</h3><p>Доступна даже после окончания подписки</p></div></div>
+          <form id="support-form" class="support-form">
+            <input id="support-subject" maxlength="100" value="Продление подписки" aria-label="Тема обращения">
+            <textarea id="support-text" maxlength="4000" rows="3" placeholder="Например: оплату произвёл, прошу продлить доступ"></textarea>
+            <button class="mini-button" type="submit">Отправить в поддержку</button>
+          </form>
+          <p id="support-message" class="message"></p>
+          <div id="support-list" class="support-list"><p class="muted">Обращений пока нет.</p></div>
+        </section>
+        <div class="section-head"><div><h3>Контакты</h3><p>Активные пользователи сети</p></div><button id="refresh-contacts" class="icon-button" type="button">↻</button></div>
+        <div id="contacts-list" class="contacts-list"><p class="muted">Загрузка…</p></div>
+        <section id="admin-panel" class="admin hidden">
+          <div class="section-head"><div><h3>Головной узел</h3><p id="network-status">Загрузка состояния сети…</p></div></div>
+          <div id="dashboard-summary" class="dashboard-grid"></div>
+          <section class="network-management">
+            <h4>Конфигурация сети</h4>
+            <label>Название сети<input id="network-name-input" maxlength="80" placeholder="FibroChat Network"></label>
+            <label>Публичный адрес<input id="network-url-input" placeholder="https://chat.example.com"></label>
+            <p class="muted">Для локальной сети поле можно оставить пустым. Для интернета используйте HTTPS.</p>
+            <div class="network-actions">
+              <button id="save-network-settings" class="mini-button" type="button">Сохранить настройки</button>
+              <button id="download-network-profile" class="mini-button" type="button">Скачать профиль сети</button>
+            </div>
+            <p id="network-settings-message" class="message"></p>
+            <div class="backup-box">
+              <h4>Зашифрованная копия всей сети</h4>
+              <p>В архив входят служебные данные и зашифрованные сообщения. Пароль не восстанавливается.</p>
+              <input id="network-backup-password" type="password" minlength="12" placeholder="Пароль копии — минимум 12 символов">
+              <button id="download-network-backup" class="danger-button" type="button">Скачать резервную копию сети</button>
+              <p id="network-backup-message" class="message"></p>
+            </div>
+          </section>
+
+          <button id="create-invite" class="primary" type="button">Создать инвайт</button>
+          <code id="invite-output">Новый код появится здесь</code>
+          <h4>Пользователи и подписки</h4><p class="muted">Продление доступно на 30, 90 или 365 дней.</p>
+          <div id="users-list" class="users-list"></div>
+          <details class="audit-box">
+            <summary>Журнал действий</summary>
+            <div id="audit-list" class="audit-list"><p class="muted">Загрузка…</p></div>
+          </details>
+        </section>
+      </aside>
+
+      <section class="chat card">
+        <div id="empty-chat" class="empty-chat"><div class="empty-icon">✦</div><h2>Первый контакт</h2><p>Выбери пользователя слева, чтобы открыть диалог.</p></div>
+        <div id="chat-view" class="chat-view hidden">
+          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.2.0</span></header>
+          <div id="messages-list" class="messages-list"></div>
+          <form id="message-form" class="composer"><textarea id="message-input" rows="1" maxlength="4000" placeholder="Написать сообщение…"></textarea><div class="composer-actions"><span id="char-counter" class="char-counter">0/4000</span><button id="send-button" class="send-button" type="submit" disabled>Отправить</button></div></form>
+          <p id="chat-error" class="message"></p>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

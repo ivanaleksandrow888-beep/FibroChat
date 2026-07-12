@@ -1,0 +1,437 @@
+[
+  {
+    "id": "8786417b-1044-472f-a287-f8bd8c0fde75",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {},
+    "createdAt": "2026-07-12T12:59:01.053Z"
+  },
+  {
+    "id": "6fda653c-a857-4873-b3d9-b280e1831941",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "details": {},
+    "createdAt": "2026-07-12T12:59:12.194Z"
+  },
+  {
+    "id": "7a64a866-5d3a-4933-b46f-39439a72b1ee",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {},
+    "createdAt": "2026-07-12T13:20:40.048Z"
+  },
+  {
+    "id": "6e8eec1b-fb3d-4527-b4f2-e44a1f8c28ac",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "details": {},
+    "createdAt": "2026-07-12T13:20:54.530Z"
+  },
+  {
+    "id": "4b63aa91-edb5-4edb-838e-16a86e9fad58",
+    "type": "DEVICE_TRUSTED",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+    "details": {
+      "name": "Windows · Chrome",
+      "source": "legacy-migration"
+    },
+    "createdAt": "2026-07-12T13:37:24.673Z"
+  },
+  {
+    "id": "3e0f1007-5178-4e5c-9b4f-58528ab60f41",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5"
+    },
+    "createdAt": "2026-07-12T13:37:24.677Z"
+  },
+  {
+    "id": "4959cd56-8f9c-4a6b-a46b-505a8c0eb269",
+    "type": "DEVICE_TRUSTED",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "50f20f29-dec4-40da-894a-e78a995762c5",
+    "details": {
+      "name": "Windows · Chrome",
+      "source": "legacy-migration"
+    },
+    "createdAt": "2026-07-12T13:37:36.480Z"
+  },
+  {
+    "id": "875fe84a-2680-4799-9db1-6473d1e1e45d",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:37:36.483Z"
+  },
+  {
+    "id": "adc05301-716a-4393-89d0-b0d8fe22dd2b",
+    "type": "DEVICE_PENDING",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "50f20f29-dec4-40da-894a-e78a995762c5",
+    "details": {
+      "name": "Windows · Chrome"
+    },
+    "createdAt": "2026-07-12T13:46:55.759Z"
+  },
+  {
+    "id": "dbb2809d-4537-4293-b619-cf48ce47949e",
+    "type": "DEVICE_PENDING",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+    "details": {
+      "name": "Windows · Chrome"
+    },
+    "createdAt": "2026-07-12T13:47:36.993Z"
+  },
+  {
+    "id": "b5b21f03-7441-430e-ae0b-f3b956b8e30b",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5"
+    },
+    "createdAt": "2026-07-12T13:47:57.579Z"
+  },
+  {
+    "id": "43dc3964-3247-4ff5-8f76-d8f155a2861d",
+    "type": "DEVICE_APPROVED",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "50f20f29-dec4-40da-894a-e78a995762c5",
+    "details": {
+      "approvedFrom": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5"
+    },
+    "createdAt": "2026-07-12T13:48:06.455Z"
+  },
+  {
+    "id": "90d33e67-eeac-4369-b5dc-e456a81a812b",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:09.147Z"
+  },
+  {
+    "id": "d1e7ca08-54b8-4785-8cf9-33965a6a7a2c",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:10.404Z"
+  },
+  {
+    "id": "6c7f79e1-3b80-4ae5-932e-faf5c09bd3f5",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:10.571Z"
+  },
+  {
+    "id": "1704be3a-446e-4a63-8140-7d0f3909dc59",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:10.758Z"
+  },
+  {
+    "id": "a1ef6c29-2c32-4a9a-beee-205ddb6d80d1",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:10.943Z"
+  },
+  {
+    "id": "435578d2-ce23-4dd4-a3c0-712681af82da",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:11.144Z"
+  },
+  {
+    "id": "f9ca7671-9d59-4bb8-a9c5-f2b78f84aba5",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:11.324Z"
+  },
+  {
+    "id": "690b084b-9e6a-4c88-abce-88f4d1292f1a",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:11.555Z"
+  },
+  {
+    "id": "7d710cf9-39b3-4a42-8a86-53784adcc908",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:25.184Z"
+  },
+  {
+    "id": "24af415c-36a8-4043-978a-b7e5fa09a9ed",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:26.920Z"
+  },
+  {
+    "id": "462e7b68-6b1b-4091-b741-c750f9c1e88e",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:27.044Z"
+  },
+  {
+    "id": "4fcce594-165f-4358-bc0e-fa6a95ece6e2",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:27.162Z"
+  },
+  {
+    "id": "5d7dc461-8a36-4a7f-a774-f955b1ef485d",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:27.314Z"
+  },
+  {
+    "id": "398289a8-ebe8-4de1-a497-526b89465d17",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:27.536Z"
+  },
+  {
+    "id": "c5379707-bd62-41b7-b719-6fe07ad7e9b4",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:27.689Z"
+  },
+  {
+    "id": "b2a67755-c32a-4f68-a63f-6cc2cc7bea31",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:48:27.810Z"
+  },
+  {
+    "id": "6c69586f-4ef5-4134-970a-92cc24afdba5",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T13:49:38.765Z"
+  },
+  {
+    "id": "3e238eec-5fad-4178-b1d7-f9f585797c8b",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+      "sessionId": "e8135843-c75d-47d4-9066-3fae4ab07ccc"
+    },
+    "createdAt": "2026-07-12T14:03:59.012Z"
+  },
+  {
+    "id": "e83dbd7c-c153-4c55-bbc5-5311b5c1f33e",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5",
+      "sessionId": "9c6aa8da-96c1-4537-8b47-7ecb1a3a7b7d"
+    },
+    "createdAt": "2026-07-12T14:04:14.313Z"
+  },
+  {
+    "id": "4d780670-dec7-44bf-813f-dd1d0e02809f",
+    "type": "DEVICE_APPROVED",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+    "details": {
+      "approvedFrom": "50f20f29-dec4-40da-894a-e78a995762c5"
+    },
+    "createdAt": "2026-07-12T14:04:21.725Z"
+  },
+  {
+    "id": "ff60d8ee-5178-4be3-b3d9-4e03d6d9ca20",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+      "sessionId": "18372eae-e66d-4546-a45a-047db65df650"
+    },
+    "createdAt": "2026-07-12T15:03:30.903Z"
+  },
+  {
+    "id": "98ae411f-203e-42bc-a1fa-adfb61b4f784",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5",
+      "sessionId": "96413299-f72b-4735-b54c-73b7282666fa"
+    },
+    "createdAt": "2026-07-12T15:03:41.375Z"
+  },
+  {
+    "id": "83478179-2279-4716-ba0d-fc8a09fcf609",
+    "type": "SUPPORT_TICKET_CREATED",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "3ded7474-112d-420d-912f-3b110e585813",
+    "details": {
+      "subject": "Продление подписки"
+    },
+    "createdAt": "2026-07-12T15:04:32.667Z"
+  },
+  {
+    "id": "f7bb5331-e187-4819-a08a-6f6f79a4f9e6",
+    "type": "SUPPORT_REPLIED",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "details": {
+      "ticketId": "3ded7474-112d-420d-912f-3b110e585813"
+    },
+    "createdAt": "2026-07-12T15:04:58.485Z"
+  },
+  {
+    "id": "d306d336-ad32-4602-93c0-fc3400d64687",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+      "sessionId": "9e3f9a89-d850-4b2b-bb9e-b86c710e6d25"
+    },
+    "createdAt": "2026-07-12T15:13:50.468Z"
+  },
+  {
+    "id": "ad47cd02-90f7-4f45-ab83-7bb0c434ac89",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5",
+      "sessionId": "32665f61-79a4-4a1e-96ab-5d8f0a5e8f96"
+    },
+    "createdAt": "2026-07-12T15:15:21.375Z"
+  },
+  {
+    "id": "19a39559-091d-4694-8abf-f422c89bb61e",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+      "sessionId": "55a32bda-72e4-4aa3-ac7e-c50e0c1c4830"
+    },
+    "createdAt": "2026-07-12T15:34:48.168Z"
+  },
+  {
+    "id": "bd032d6b-f846-45e4-9d20-2ed23dc6c9f4",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+      "sessionId": "57f3e15e-045a-4609-b251-89aa495e2995"
+    },
+    "createdAt": "2026-07-12T15:46:22.175Z"
+  },
+  {
+    "id": "74a5165e-9602-49f2-aef5-6e2d939ef273",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5",
+      "sessionId": "5faf57d4-c1dc-4fde-a7bb-c633fffab03e"
+    },
+    "createdAt": "2026-07-12T15:46:28.298Z"
+  },
+  {
+    "id": "e49bd82f-fc3c-4bde-8615-8bab934ec824",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "targetId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "details": {
+      "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+      "sessionId": "cecb96f6-502d-402d-be1b-90b381a572ee"
+    },
+    "createdAt": "2026-07-12T16:58:06.771Z"
+  },
+  {
+    "id": "82b13ef1-4f23-42f5-869b-9e6ee8f8ed0b",
+    "type": "LOGIN_SUCCESS",
+    "actorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "targetId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "details": {
+      "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5",
+      "sessionId": "7f6a62d4-1446-4bf9-8860-abf9623cc3ec"
+    },
+    "createdAt": "2026-07-12T16:58:12.313Z"
+  }
+]

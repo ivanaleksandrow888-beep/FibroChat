@@ -1,0 +1,62 @@
+[
+  {
+    "id": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "nickname": "Bob",
+    "passwordSalt": "9a22fd976e09ae7cdb1d34fef5ca6ba0",
+    "passwordHash": "f5ca26e5dc6a4e51212cde58eda31c1a83126608393ef896026258e0d6ec97c1331ec09c7de4f7422b616a4cbaefa36486677b619602318ed91df4dd718a0be7",
+    "role": "super_admin",
+    "status": "active",
+    "createdAt": "2026-07-11T23:17:57.561Z",
+    "approvedAt": "2026-07-11T23:17:57.561Z",
+    "subscriptionEndsAt": "2026-08-10T23:17:57.561Z",
+    "encryptionPublicKey": {
+      "crv": "P-256",
+      "ext": true,
+      "key_ops": [],
+      "kty": "EC",
+      "x": "Iv16B5CObSW3k0bftW8SUXKjj2kZ68Gxe74WSY6Ni84",
+      "y": "632Xu-FABaSmbvCxcJWok-WDNIfQznaBQAiGsNPTjDc"
+    },
+    "signingPublicKey": {
+      "crv": "P-256",
+      "ext": true,
+      "key_ops": [
+        "verify"
+      ],
+      "kty": "EC",
+      "x": "7rHvGI0lc3cyMQEuTKTfl_UJaGef-Q02HVtGQoHsdoo",
+      "y": "6mr9YBwH-paUdKZrKIDq7R_lN8W4-SQZYQbs9hLal6k"
+    },
+    "keyCreatedAt": "2026-07-12T12:11:39.818Z"
+  },
+  {
+    "id": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "nickname": "tim",
+    "passwordSalt": "c64727a9bf3287ced174e3413c61888c",
+    "passwordHash": "c293b232eccb20692646743265dfaf5df46ba7c69427dea67cac0bfd182ec95228554f00b66002b0311f9946c8a9d29e2ff35a0c5dbaa78ff1891d69e111fda1",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2026-07-11T23:20:41.341Z",
+    "approvedAt": "2026-07-11T23:21:22.813Z",
+    "subscriptionEndsAt": "2026-08-10T23:21:22.813Z",
+    "encryptionPublicKey": {
+      "crv": "P-256",
+      "ext": true,
+      "key_ops": [],
+      "kty": "EC",
+      "x": "XabjmpDv0fZ7Qr-w1gKIKGy585CjFJSJOVAYP7dyoO0",
+      "y": "HfGXgWTrbx_SCJ58TDuudVAUMOyra7A1MlZla7D_sgs"
+    },
+    "signingPublicKey": {
+      "crv": "P-256",
+      "ext": true,
+      "key_ops": [
+        "verify"
+      ],
+      "kty": "EC",
+      "x": "iJH1wLMvpheP50vWfCHhj_NKBWr9eJQYS6gfy6HanFU",
+      "y": "RKdjg0B64o78DeKbUWHb-Hu8w17nl5t_psl2Eaq0uDU"
+    },
+    "keyCreatedAt": "2026-07-12T12:12:23.740Z"
+  }
+]

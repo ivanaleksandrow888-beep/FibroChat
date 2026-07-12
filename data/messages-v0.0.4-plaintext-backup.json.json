@@ -1,0 +1,38 @@
+[
+  {
+    "id": "5a5b829c-ab26-41f2-ba23-9a59939b5b75",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "text": "Привет",
+    "createdAt": "2026-07-11T23:33:55.033Z",
+    "deliveredAt": "2026-07-11T23:33:55.033Z",
+    "readAt": "2026-07-11T23:34:04.403Z"
+  },
+  {
+    "id": "4220eb82-f35b-483d-992e-2f242500bfd2",
+    "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "text": "пр",
+    "createdAt": "2026-07-11T23:34:09.434Z",
+    "deliveredAt": "2026-07-11T23:34:09.434Z",
+    "readAt": "2026-07-11T23:34:10.785Z"
+  },
+  {
+    "id": "86d7ea5d-9961-4b79-9fae-0a4791785299",
+    "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "text": "как дела",
+    "createdAt": "2026-07-11T23:34:16.084Z",
+    "deliveredAt": "2026-07-11T23:34:16.084Z",
+    "readAt": "2026-07-11T23:34:18.289Z"
+  },
+  {
+    "id": "afef57b2-db59-4275-a2d0-181bce4de292",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "text": "супер ты как",
+    "createdAt": "2026-07-11T23:34:24.866Z",
+    "deliveredAt": "2026-07-11T23:34:24.866Z",
+    "readAt": "2026-07-11T23:34:26.493Z"
+  }
+]

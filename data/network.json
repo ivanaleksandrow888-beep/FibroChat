@@ -1,0 +1,24 @@
+{
+  "nodeId": "9460cb4c-9ef0-477f-9c27-1c5943f9fb90",
+  "createdAt": "2026-07-12T12:58:22.235Z",
+  "headUserId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+  "networkName": "FibroChat Network",
+  "headNickname": "Bob",
+  "activatedAt": "2026-07-11T23:17:57.561Z",
+  "networkId": "fibro-53967bdd",
+  "protocolVersion": "1.1",
+  "publicBaseUrl": "",
+  "signingPrivateKey": {
+    "kty": "EC",
+    "x": "ZUyJ0bJSVHidneXeQd73ZC3Uzl9qtU154iu6ZJkm3Oc",
+    "y": "TMfBGVwFX1QAUrd4xcljbi0v_77Ea0U3eqM2AeJmbk0",
+    "crv": "P-256",
+    "d": "fq0UucLc2sbNkfCFYCLM_-1pByzU_1g5hPI1aVrjuOc"
+  },
+  "signingPublicKey": {
+    "kty": "EC",
+    "x": "ZUyJ0bJSVHidneXeQd73ZC3Uzl9qtU154iu6ZJkm3Oc",
+    "y": "TMfBGVwFX1QAUrd4xcljbi0v_77Ea0U3eqM2AeJmbk0",
+    "crv": "P-256"
+  }
+}

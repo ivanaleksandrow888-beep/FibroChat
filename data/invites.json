@@ -1,0 +1,82 @@
+[
+  {
+    "id": "8f7ad346-f9bf-495f-a76a-edbd8463e197",
+    "code": "FIBRO-B86CF62E7A",
+    "role": "user",
+    "createdBy": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "createdAt": "2026-07-11T23:18:15.777Z",
+    "expiresAt": "2026-07-18T23:18:15.777Z",
+    "usedAt": null,
+    "usedByNickname": null
+  },
+  {
+    "id": "f732d3af-020b-4507-9b73-176cca541292",
+    "code": "FIBRO-F54D68A201",
+    "role": "user",
+    "createdBy": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "createdAt": "2026-07-11T23:18:17.122Z",
+    "expiresAt": "2026-07-18T23:18:17.122Z",
+    "usedAt": null,
+    "usedByNickname": null
+  },
+  {
+    "id": "828d11db-7378-4080-b13b-832cb3ea20f3",
+    "code": "FIBRO-E3225CFB5C",
+    "role": "user",
+    "createdBy": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "createdAt": "2026-07-11T23:18:17.676Z",
+    "expiresAt": "2026-07-18T23:18:17.676Z",
+    "usedAt": null,
+    "usedByNickname": null
+  },
+  {
+    "id": "18170c1e-9b08-4b91-bc07-67a673cd8121",
+    "code": "FIBRO-121252E5E6",
+    "role": "user",
+    "createdBy": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "createdAt": "2026-07-11T23:18:18.098Z",
+    "expiresAt": "2026-07-18T23:18:18.098Z",
+    "usedAt": null,
+    "usedByNickname": null
+  },
+  {
+    "id": "97ca02f6-de3f-4fe9-b18d-f6e829c3c559",
+    "code": "FIBRO-7F91F466F4",
+    "role": "user",
+    "createdBy": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "createdAt": "2026-07-11T23:18:18.340Z",
+    "expiresAt": "2026-07-18T23:18:18.340Z",
+    "usedAt": null,
+    "usedByNickname": null
+  },
+  {
+    "id": "359ba183-b872-400a-9476-495c76e1b14c",
+    "code": "FIBRO-DE9B5A5F35",
+    "role": "user",
+    "createdBy": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "createdAt": "2026-07-11T23:18:18.555Z",
+    "expiresAt": "2026-07-18T23:18:18.555Z",
+    "usedAt": null,
+    "usedByNickname": null
+  },
+  {
+    "id": "4c482faf-efbb-495e-8530-c7d5c113cc81",
+    "code": "FIBRO-D9E9392279",
+    "role": "user",
+    "createdBy": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "createdAt": "2026-07-11T23:18:18.880Z",
+    "expiresAt": "2026-07-18T23:18:18.880Z",
+    "usedAt": null,
+    "usedByNickname": null
+  },
+  {
+    "id": "2cb3f8c5-4971-42ac-b276-3e46dfdd6ec1",
+    "code": "FIBRO-7C4A7C90EE",
+    "role": "user",
+    "createdBy": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "createdAt": "2026-07-11T23:19:34.939Z",
+    "expiresAt": "2026-07-18T23:19:34.939Z",
+    "usedAt": "2026-07-11T23:20:41.280Z",
+    "usedByNickname": "tim"
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "name": "fibrochat",
+  "version": "0.3.0",
+  "private": true,
+  "description": "FibroChat Protocol Core",
+  "scripts": {
+    "start": "node server/server.js",
+    "check": "node --check server/server.js && node --check client/app.js",
+    "restore-network": "node tools/restore-network-backup.js"
+  }
+}

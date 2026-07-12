@@ -1,0 +1,797 @@
+[
+  {
+    "id": "d419b1ff-d239-45f4-8525-a6abc624d57f",
+    "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "envelope": {
+      "version": 1,
+      "messageId": "d419b1ff-d239-45f4-8525-a6abc624d57f",
+      "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "createdAt": "2026-07-12T12:12:36.402Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "9A_FlwVbSH8aBcoSnqPZDMrigwFwh4rXSMakU-vCTTY",
+        "y": "DpvF62B9ftzQyxq5rjeFezLDFbglewoaY9c8atSTEGw"
+      },
+      "ciphertext": "ruUaolFUSOwe62TN1TUbm9Wu3g==",
+      "contentIv": "U5WuQCWyQeRVNPGu",
+      "keyBoxes": {
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "wneKPqMQGWUJDWXK",
+          "wrappedKey": "y3xv0xGmwpty/U8lXRUH0i8an+Jxm1Aa6Oqvw36HvoZG9pG0tEJj6SAqpk0RZxSy"
+        },
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "HtPDA8KpNHmnp520",
+          "wrappedKey": "5Es6ph1d/wx8QMv+TrJMlEdQwrifNZh2sk/XFnpfUXD145Uet6J/ZGEoyAxxSl2q"
+        }
+      }
+    },
+    "signature": "a9oA31FCKhbq65yCoaf13ZhKmUPg9VmO+kacl4QfSt8nDXa5ggBEapVm/jMBB/Jl58V7C+l6hbJ+TI9JXcRjeA==",
+    "createdAt": "2026-07-12T12:12:36.402Z",
+    "deliveredAt": "2026-07-12T12:12:36.410Z",
+    "readAt": "2026-07-12T12:12:40.675Z"
+  },
+  {
+    "id": "051c81f9-67cf-498c-92a7-f3d06ed906e1",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "051c81f9-67cf-498c-92a7-f3d06ed906e1",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T12:12:45.551Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "N9AaCF7fTDPnES-fj9yvkTbAzrDnO8_RYQejD0T_AAI",
+        "y": "EMdaJxdg9O1HgF0jN9L5r2nIsPQtCtvmyPb1xMY2v5s"
+      },
+      "ciphertext": "eqFhM+uYIy2WGQ/j/1OceC56VPCYww==",
+      "contentIv": "0ZSGLKRmXaWPbSHR",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "CXwPLiC8Z0IdPdRR",
+          "wrappedKey": "yk+GOrdsoToI6jZHJP624Se8t4LnQEFS5++H7T+iq9CrxW9noXR9P0OkxAvSKMH5"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "rpNI/9W+ck7UMll7",
+          "wrappedKey": "xP0gQ7o/mQ+19yN0JhWtncsnqZ9nlkIOYmJqUxmjfOZs37zKKOLgyk1EtfOrPDW8"
+        }
+      }
+    },
+    "signature": "bmrmpjSMymeozhyWyFFtY9wwLUAyAD0a1ER1qX2gidvJQ7e5rqkRlBuvUIr38D4qqQ2fBoI+7E5RbbsvO8mxbQ==",
+    "createdAt": "2026-07-12T12:12:45.551Z",
+    "deliveredAt": "2026-07-12T12:12:45.558Z",
+    "readAt": "2026-07-12T12:12:46.345Z"
+  },
+  {
+    "id": "f2360bd4-6bd3-4f9f-be5a-29b2a29ef6e0",
+    "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "envelope": {
+      "version": 1,
+      "messageId": "f2360bd4-6bd3-4f9f-be5a-29b2a29ef6e0",
+      "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "createdAt": "2026-07-12T12:12:53.469Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "TtmH8j5KUW8lWdE0o8qAqC74gwK9FUi5d4ZuFCwcyHE",
+        "y": "J83EjqWhmnivsOnHZZFdgLi7xoZaRHD84e-b-grjSjc"
+      },
+      "ciphertext": "7ZApJVJQQdZ+bxS3LjdHmP1+iWnn0r8U",
+      "contentIv": "D6DCKPe3ui/unUVt",
+      "keyBoxes": {
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "eLC3yJhTNQ49Hv5w",
+          "wrappedKey": "cYhViat6F85cv5opSgvKswHgNmU/sd+5prDd0WFIM8M5qJGGZcHcwF801vBChJPK"
+        },
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "Sjt3wyRX2M+y+emg",
+          "wrappedKey": "9+4SSCyq42Ek6+mrVMaVAhhUa9ApYm2ASI3L+J3QAFgN22tgKzI2gB9jsBVsOav8"
+        }
+      }
+    },
+    "signature": "q7WoRjOgNdY3Xa118B9pqJrJgs/MlUkyYuZEO4QcmtFfPDM0D7/p6eNdF65FVWTf6zMU65HfPSbbGviBHJe0xA==",
+    "createdAt": "2026-07-12T12:12:53.469Z",
+    "deliveredAt": "2026-07-12T12:12:53.474Z",
+    "readAt": "2026-07-12T12:12:54.926Z"
+  },
+  {
+    "id": "d61ef15e-6f36-4a65-823b-e5cddd50191f",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "d61ef15e-6f36-4a65-823b-e5cddd50191f",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T12:37:59.022Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "bmp0Ylfqf6TUMuTLnbt9Ok84JsB1THfTWOgz7FPffBA",
+        "y": "es_c8ujZnLm6e5fSQfKbdaNKBBJXZzioozB7apPIbNE"
+      },
+      "ciphertext": "+p3BX7dC+wP5Fin3WLTWYI0/Bzz8YbVNoGxjlVDe",
+      "contentIv": "rOdbPlYJwo+QUnOC",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "Al5DdUFAgFOlIvGj",
+          "wrappedKey": "YtXKPpKrJacpEFajlzu6wi1pUAPNwtwKJmCad1KDcENeHN+mueAmYkmn9FWko4cA"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "BPvltlAqxQ90Smf6",
+          "wrappedKey": "5mNTyBeVjLPCNUOUDFCBCr8OaT2QrlAe2XqsVPeZFw8GASLnyfpSvMvzbaIpOhsG"
+        }
+      }
+    },
+    "signature": "RNHa8hn7EwCLZuriGirS6KBh6rX+IZdbLz2Cw9JaoD8Y/gFOuUNzUXA9DpM6bVW3cQeJbxrODpLZ6HwWDc9eLw==",
+    "createdAt": "2026-07-12T12:37:59.022Z",
+    "deliveredAt": "2026-07-12T12:37:59.030Z",
+    "readAt": "2026-07-12T12:38:05.471Z"
+  },
+  {
+    "id": "440b4022-cf27-47c5-9cb5-73ad3cf7c853",
+    "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "envelope": {
+      "version": 1,
+      "messageId": "440b4022-cf27-47c5-9cb5-73ad3cf7c853",
+      "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "createdAt": "2026-07-12T12:38:09.789Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "xHy6M7XxI5c2vtKkQLs-fdlmllgat29XLRdHU6IcIrw",
+        "y": "rXMWF7kWA4vq05nc3_Nht5MtPaxtO-fHOySrma-ZpUk"
+      },
+      "ciphertext": "EDuZpy+JXxH9QYgNsJwtWXR5Ft6zrEAE",
+      "contentIv": "OX4aI0uNNnV4ezDv",
+      "keyBoxes": {
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "maPhP9UXbcrEs+UO",
+          "wrappedKey": "JawN+uJx04eMaYcm6PIGlx35KyWXDy6am1YAdiKPa5dwLBJF6I43li3GDp28E7ta"
+        },
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "6SZu1TnAtCLXoAHN",
+          "wrappedKey": "Ax8xlpAB/CF7Xv4kJ792hd1iNuXOm1lnIFhmMnOMq/OJiAGK07DHO1t3toXGnnS8"
+        }
+      }
+    },
+    "signature": "KARplrlMMdknw43jf4Spm2UlJh9FwG2/OMS9NfBNiOX7gRyFIADoLwWDxMyCVE8Xhs2ns3k6kAxO1jAkIfofXw==",
+    "createdAt": "2026-07-12T12:38:09.789Z",
+    "deliveredAt": "2026-07-12T12:38:09.793Z",
+    "readAt": "2026-07-12T12:38:10.526Z"
+  },
+  {
+    "id": "6df277b7-0d3e-4ac0-b63c-6c7090caadf9",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "6df277b7-0d3e-4ac0-b63c-6c7090caadf9",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T12:38:18.916Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "iuffO4HO7vas8383cSX73ZxO8E-upMVFgdaw5nmQcnU",
+        "y": "nllf-nlagikcGYqNvgllznIlXJX3LWZfqTZSEmT50Dk"
+      },
+      "ciphertext": "TKnS7o2mFnhOm5ZaIsgclax/vyooveTn3uxp/W6v57+Bl4y7+9m3HQ==",
+      "contentIv": "gPgIPQGbqkvvYPKb",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "dxgu0Lfx6igzh3jN",
+          "wrappedKey": "yUx+XwkU1G8+nOCApihRjG6k0GNNX3AU1ZYai4mc1qdML79m1c97XjPV8TOwi+MO"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "dsU9yVV8BstDr2F6",
+          "wrappedKey": "sXJohoKuFHHg/QfAn2ZZbxTC88yhkoNJvZuHzpKj9LEHsKVYNo2SkOr7MfDWf6tI"
+        }
+      }
+    },
+    "signature": "2D7N4OU7LaH0QnPqzFih8GE9pPDiroXmsOIzNNdNJZ6FYcTg9wFY7qGqFxqgaIYcLv20I9A39fdEvEnTJtiHXw==",
+    "createdAt": "2026-07-12T12:38:18.916Z",
+    "deliveredAt": "2026-07-12T12:38:18.921Z",
+    "readAt": "2026-07-12T12:38:21.074Z"
+  },
+  {
+    "id": "3eaa17ff-d99f-4557-97cf-cd67316e49c0",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "3eaa17ff-d99f-4557-97cf-cd67316e49c0",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T13:01:18.603Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "KonTqUGZlP03sDwvOvCnW12Jq-TYRrEVvS-WUTXFVok",
+        "y": "BK3GNAe6KHF2LoTHUsQV9ShS6QTHk9kR76wkJR44Qyw"
+      },
+      "ciphertext": "gNfTae078PEwlYV506j2pIusjHTaol0KX+euvd9ygsyWGdvDLHMRyQ==",
+      "contentIv": "Gbi5/hLeZBfVEFvq",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "TWOBBC8cdhAuGRG/",
+          "wrappedKey": "CaWMq3S8twkUvzNequum8JFi3d8+pjYyOHhLOQ6NTRJg3w9lII0vkzpzdK/7Lz6e"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "5qkaSEgzw+Ps+MSE",
+          "wrappedKey": "UbLxR3zZGszbsgwzUDf6u5Q5bVliYsjddSu0qo+hwaKdfso+7imeCkb3mkk7hK5f"
+        }
+      }
+    },
+    "signature": "yw5tyOzpQIK5XaUK5+bm+4ma6uha29dp12NvOGQdt/sSjKyXETUEj8g1+vTkHGMfayWG0oyk/2qXuQ990MYq7A==",
+    "createdAt": "2026-07-12T13:01:18.603Z",
+    "deliveredAt": "2026-07-12T13:01:18.611Z",
+    "readAt": "2026-07-12T13:01:27.248Z"
+  },
+  {
+    "id": "9e69c75a-fae7-4804-9152-415295c67199",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "9e69c75a-fae7-4804-9152-415295c67199",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T13:01:21.911Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "Je72LLHOYvguX8ouVEyP9_Y0eGxA2-WtPqFxp0M6VYc",
+        "y": "Nbmh7bdNF_VdzOmFgilw59BZvJ3okfHF9HAqciHgt4Y"
+      },
+      "ciphertext": "+aXPxFSs1wy6pA2try9fs5ToH+whCDnW7J5AS4eeAw==",
+      "contentIv": "R153W4Uy+o60vGDx",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "52ng+emUEfVCaiEp",
+          "wrappedKey": "J1tIb0Q7NcgHMJbD8EM8J/7/JYVyGruJRIT6bfrhLr5yTaTlDHMLHSo2Ng0r3NeI"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "9DK+DJaRBk3NbkQp",
+          "wrappedKey": "T86MrKFjfYH/9ATpor5pTU5MMSPi1gDBLZ21DMb36W8fhakh25p3S6gUZpg9W/Rb"
+        }
+      }
+    },
+    "signature": "sRPSnb8bXORSzkNr9NS/QewNWbcU87K3skbz+FO8SFWdPDJ8iWNQo5Wr3NZQD4AZNKB5/Ob30me6xRiXMuh27A==",
+    "createdAt": "2026-07-12T13:01:21.911Z",
+    "deliveredAt": "2026-07-12T13:01:21.915Z",
+    "readAt": "2026-07-12T13:01:27.252Z"
+  },
+  {
+    "id": "d1a07061-6b8a-4942-9ff3-7c005dc23591",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "d1a07061-6b8a-4942-9ff3-7c005dc23591",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T13:01:24.320Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "_MKenKAlTRgo5p2USOYpFsuMG4GQpX-FEQe8vWyQkpk",
+        "y": "ID8g9RH6FSVYgZc2HsJOWQ5XB3Oz6QG70-oFDzPSKQw"
+      },
+      "ciphertext": "nwofRNXlVCo8n3xhF4R1MA7tJecTHg==",
+      "contentIv": "A434Uc38ysxjEX2/",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "5QplPP8Oa1jHfQ3h",
+          "wrappedKey": "FpSML+GBwU8We1sZJk3/yYIfFz7x166Y666gCwnKGR7pmBTXjtPKj47S1nyTqa01"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "1YL2a4CWXKW6FTSk",
+          "wrappedKey": "G5MoVQtSA1+Gr7VnrRAaztgL0xsKe0fMtDCBhI3GZA1ezYy9jf3gBJmhcM4FVg3J"
+        }
+      }
+    },
+    "signature": "cfcawZV2uQ/aXJe3+v/iAyG48Yfh4zdrLbJqBj0tDDgxvRYTGoMa8PTeHqhTtKToOPdlQySFTPvl/lYveCoUdw==",
+    "createdAt": "2026-07-12T13:01:24.320Z",
+    "deliveredAt": "2026-07-12T13:01:24.325Z",
+    "readAt": "2026-07-12T13:01:27.255Z"
+  },
+  {
+    "id": "f79dea54-97bb-4fd5-86dd-b9af7d116de7",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "f79dea54-97bb-4fd5-86dd-b9af7d116de7",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T13:26:08.957Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "lGVaZMofz-AJEZ8HzbedlXL9Zm0esusFrvTIKp-ZLDc",
+        "y": "_WjNMPqcIP7BW0NAvIDHQ5VS76m-i3C6eJlNOlRMAwY"
+      },
+      "ciphertext": "kDtsWVigdQfQq2/5xqoESI/P1oZAJ5lERR9WpWUTUcM1ZBfn6YLKSQ==",
+      "contentIv": "5SHVJHJb5/5Z4TXl",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "DDLAVUeeMZslNaj2",
+          "wrappedKey": "oBjoohprPg7kJqO8ZID5xerX2pajJecR7aP8iU3ZT5PBYuRfb2uIJAm1EgBfa3K8"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "LaglFugR4xCT/JAw",
+          "wrappedKey": "CORvZ1zJ1YdTgoIT3ibKIbAAqwO/yeGWijnByVRYfNtnRpIMCvsPNK5dI9ER3Hf5"
+        }
+      }
+    },
+    "signature": "+Z2KPOFHYtqv0+VGe8ZsTr9A11J0LExJX5BVnJ6lmQe+0qOQ8w2bubpuXT+lkMtyp9g7rUdeGbdzW6jRJljGDA==",
+    "createdAt": "2026-07-12T13:26:08.957Z",
+    "deliveredAt": "2026-07-12T13:26:08.966Z",
+    "readAt": "2026-07-12T13:26:15.896Z"
+  },
+  {
+    "id": "9e17a8e4-b579-4ec5-8f91-7ae41f36ecf4",
+    "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "envelope": {
+      "version": 1,
+      "messageId": "9e17a8e4-b579-4ec5-8f91-7ae41f36ecf4",
+      "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "createdAt": "2026-07-12T13:26:24.850Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "SZhbS96WwbaLaNXYYTZboc7ajwhkBY1PHab9roE5CPA",
+        "y": "KGH1tnSW5-O2kWNU7Y_sjdN7wLkRdn9JcDYKlpN-nfs"
+      },
+      "ciphertext": "BFy20xIXh/8/ujta/iNYb91pX7AV16q3qN6M6Gr+B64ZIKH+TlaLme4xyvZSLoNRAHq1Ep7XEh8=",
+      "contentIv": "805UDsT0qPAaqGyy",
+      "keyBoxes": {
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "ksEVTtQ4orFtxlGL",
+          "wrappedKey": "0CL+7HixOM++8V0NDV81FYmORposgOSzgyEK3nzpegrckmn0ipq0Zf20jp4we4CR"
+        },
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "mCpgvFZp4DDwz1Ud",
+          "wrappedKey": "MlouuYejbfeHbadg7IExCRJw5BFzfX02pbGyxGoa4/kGdTat3HgEXsmDaTteAC8D"
+        }
+      }
+    },
+    "signature": "yutAhSgq4Dhu/1H3/c4MmNKR/cxLTfdDi4gdJ9sOMDqYxMIJFh/CLHnSllJ1yZ2o9nMXfbAnBiEkV+MxLNRy2g==",
+    "createdAt": "2026-07-12T13:26:24.850Z",
+    "deliveredAt": "2026-07-12T13:26:24.855Z",
+    "readAt": "2026-07-12T13:26:25.149Z"
+  },
+  {
+    "id": "36ff43b3-4f89-4248-921d-0cd36a6ec398",
+    "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "envelope": {
+      "version": 1,
+      "messageId": "36ff43b3-4f89-4248-921d-0cd36a6ec398",
+      "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "createdAt": "2026-07-12T14:04:51.421Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "yzjp9rLQLhIgffPdXg0S6D0uMGWSHDNqnBaSW4SaFy4",
+        "y": "U9vtwhJNYYKBEz2_c2Kn5KXeT3-hh1Y5_lejmzB0vWg"
+      },
+      "ciphertext": "1EPfKann3W9djf95dWWKCObsLLz27D6KD+fdHQ==",
+      "contentIv": "9cUEHhr35RgGbIcc",
+      "keyBoxes": {
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "3gt1OuC0+6r2plx5",
+          "wrappedKey": "Ni3Ax/3aKYKEJbGdVbdsD2Y7BQRDpRu9nnn+Dt1uYKZlQh+4xleVjRAtnT2Shp0S"
+        },
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "+OrMWli6K63KtKrB",
+          "wrappedKey": "bRM94knb0FZu7U1ZrkKDWhngzuz5YHBgWpLfSz0QcBQjTshzXjATYVKbSdm6uGn3"
+        }
+      }
+    },
+    "signature": "kzukF0ZwFjCPWscIiELUJ1ZH9qvpY7JkDa4+1YpXpGK3JoWfhx2ABNtC/Sm5YGF/JlaEMrUyL13yLp95XtihYA==",
+    "createdAt": "2026-07-12T14:04:51.421Z",
+    "deliveredAt": "2026-07-12T14:04:51.430Z",
+    "readAt": "2026-07-12T14:05:02.662Z"
+  },
+  {
+    "id": "3990ee6e-c748-4171-893c-3138fa473fa2",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "3990ee6e-c748-4171-893c-3138fa473fa2",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T14:05:07.058Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "5K0T-N4KMsqVnf81P_kfw-9CITARb208apowxUJtMRU",
+        "y": "cK5Qg0JK_xfxYgqT9zyM916khnaRgbSWaM1ixLRg4V8"
+      },
+      "ciphertext": "SDawtt1b37cgE1oLtFGSqJosw4Cs5SgrmhAU8feXx+gBOKfXJqBtTEKwtBTCnmhicx6JxeJO9Ab4dXI4fQ==",
+      "contentIv": "/KikqwSosZcWwRFn",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "VmxeOoN+Jx41CMmn",
+          "wrappedKey": "rq8Ew5G6prQVOPSOgBvK3/8juzydPDgIdQ4vEj0Dy1ut/edgHXmPLmygpv/0pinA"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "aRuEWO693ZKXzsc3",
+          "wrappedKey": "CZGK9z5ONW8zIWIMJUAfngzVFgNnLycLq7ynHYjbTqDEWnTk2sJftN/3CE/5GjT3"
+        }
+      }
+    },
+    "signature": "pdkLvoqrwhO/WiJiwC2hobNnnG5z9dQFidWU7t8sicnTFm7ScUxrM5yTuNRzQnCw2kZuw2YcQ3RgpHPty2TiAQ==",
+    "createdAt": "2026-07-12T14:05:07.058Z",
+    "deliveredAt": "2026-07-12T14:05:07.064Z",
+    "readAt": "2026-07-12T14:05:09.421Z"
+  },
+  {
+    "id": "ed0f5d7b-17e7-435b-b031-f9d10f328d0f",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "ed0f5d7b-17e7-435b-b031-f9d10f328d0f",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T15:05:46.917Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "m6nIeeldvZTurO3lCuY3WqkWep7HTNTGtZMIj4Z0cS8",
+        "y": "yBQt5BVNw1l5-dkJWHWUa9wUb4NNXT-zs3wOSdnTRvA"
+      },
+      "ciphertext": "HdrdUchT0AJZZbVa7M7MmUtQCtqlVz1dKQtgdbIWq8zS8tYs",
+      "contentIv": "7x4saZAf61v7o4ci",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "8n3gzzLklVvA8C5t",
+          "wrappedKey": "kxzjvJHfapWO3Dlvz+OXEUUTwRX/RLaJ1FaO/7VkkgRjBxhzIuaJ9t+ArYuYkchs"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "wKKYy5fTfW/9NDWW",
+          "wrappedKey": "JHod7rQdjauVlZ7thPXL69ADQXg3oOgkcJQkAFhLCiaK3GyNXR2oFCP30NBSEDL8"
+        }
+      }
+    },
+    "signature": "uem79zhA/CsruwytFOBprNQbcnVpCqKdtLchdxCmJxElNCo+3uCfjkrjEoVVXC96x2cv9kDIKm5Kfdl+Qbk0IQ==",
+    "createdAt": "2026-07-12T15:05:46.917Z",
+    "deliveredAt": "2026-07-12T15:05:46.927Z",
+    "readAt": "2026-07-12T15:05:49.280Z"
+  },
+  {
+    "id": "f0230a04-02c2-40e3-955f-f4c7ba0eb254",
+    "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "envelope": {
+      "version": 1,
+      "messageId": "f0230a04-02c2-40e3-955f-f4c7ba0eb254",
+      "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "createdAt": "2026-07-12T15:05:52.420Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "c9310HMjrgyAdmQ3Mh5Qtmc4F3TUUh51NE_JCghzXLU",
+        "y": "ND0QVUykvbjsa9nRU1ilxzQzrNv3YhrvHWchmi5opH0"
+      },
+      "ciphertext": "nn7PS9mSB9hE1hGW57ul9BsJzKc4ttwI66JjXw==",
+      "contentIv": "xvd74OMvyLaHvxCK",
+      "keyBoxes": {
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "J0D5+EiRg8+e5Sgs",
+          "wrappedKey": "RXx+llxNZ5C7IrYY7hNyaGORHLBslxw68wDw9w72iSCFzf0EQQwM5M/XGySJWlK8"
+        },
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "LPDr6+YAtSPlHZ9i",
+          "wrappedKey": "MCbKk1jqe7vCPGQaJ0au9OdoUlS8t1pt5yn5NkXLKmt/99Cn5MjcESsNuOtE/QZV"
+        }
+      }
+    },
+    "signature": "8A76rjnrrhrB21MMGAOeYczz3ZdKmrmYlv30bEJfhLPj3cLaJJXhBbwTCEzkjKRe8nffwjjrXycy3vtk93/ofw==",
+    "createdAt": "2026-07-12T15:05:52.420Z",
+    "deliveredAt": "2026-07-12T15:05:52.426Z",
+    "readAt": "2026-07-12T15:05:52.460Z"
+  },
+  {
+    "id": "b9450b00-b20e-4081-a666-f86464bcc497",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "b9450b00-b20e-4081-a666-f86464bcc497",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T15:14:24.343Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "LTpPPlPEc9aDc40jnE4c1_69idqo_exec8sK1dfjuAA",
+        "y": "t0BGJKQwx7vJ3ZnQOSEDCmttrOhnPyGlkNZPi3FUcow"
+      },
+      "ciphertext": "PGC9WWwTlL0f9vnpHTQ1llw0yfA5wtFZPV3NvB6Vdb0aVg1kNOdVZMvDAPAw+rChl5wK",
+      "contentIv": "vqKPYpts/sf1PIdB",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "8qjjadSrgeacxxpk",
+          "wrappedKey": "l+Tj2BgpTMDo8gBsLV6ywFabEevAaz+8W/UMaYa3VnySUojG06ZSMCIAgFPKhghi"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "weEMV7GYZqnP+i7j",
+          "wrappedKey": "TgO7zSYcCMbB7W6WvQS5odT63rR3NVnfNnYhnWZjoFFCSwI0QW8l0gboLF13b5DC"
+        }
+      }
+    },
+    "signature": "NDLdW/axag8wYQE5Vr9CMVhnbvvKRMiQO0qVekXN1cbcjBhQfNJp5CL5vd8od+uScJ0WILfB6sj+jpMflyhh5w==",
+    "createdAt": "2026-07-12T15:14:24.343Z",
+    "deliveredAt": "2026-07-12T15:15:38.751Z",
+    "readAt": "2026-07-12T15:15:38.771Z",
+    "deliveryAttempts": 4,
+    "lastAttemptAt": "2026-07-12T15:15:03.219Z",
+    "nextAttemptAt": null
+  },
+  {
+    "id": "858f7962-5ecb-4a63-a32e-1e5f6869bd68",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "858f7962-5ecb-4a63-a32e-1e5f6869bd68",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T15:14:35.160Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "szy1CEYzzdCYiZBUpQiNNOTpqs2GDrlF5RJtMCr5RtQ",
+        "y": "FBISQXQNQ6smwvi_jt_Mv-f8tUK2Wnu72nS8ZkXRpeQ"
+      },
+      "ciphertext": "L0EhWWwi/NYHHzbj/tEIJIAAW8XPhOIks3DtZQg=",
+      "contentIv": "sOd9+Nqut8PFf2sV",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "LXeW/Xf3SROcnfjO",
+          "wrappedKey": "3uaUPXb2PV9XDw4T3VHThtex+NPrLB/N+ZVWoIcuUKmOnlAbdIuZV0/mry/dtmop"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "9HN0/Zaq4cAtHzpi",
+          "wrappedKey": "lkYxHwJUC70m+4lvPGtd7tjPmyPPON4dfmzy2yQmeX00wgRQDQo30dDNZGRcNpH2"
+        }
+      }
+    },
+    "signature": "kDbrmBO3GWJaFKYHFOWlNV5e4SNH9B7U+oXjTbiuXET0aFIzqmRmHfTqLHMapg3HOJRLXrsM4Uzx9Fv9QdDBmA==",
+    "createdAt": "2026-07-12T15:14:35.160Z",
+    "deliveredAt": "2026-07-12T15:15:38.751Z",
+    "readAt": "2026-07-12T15:15:38.776Z",
+    "deliveryAttempts": 4,
+    "lastAttemptAt": "2026-07-12T15:15:13.248Z",
+    "nextAttemptAt": null
+  },
+  {
+    "id": "3e3d5ec2-4f42-49d9-b9d7-b9c75c06949e",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "3e3d5ec2-4f42-49d9-b9d7-b9c75c06949e",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T15:14:43.852Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "KvmXrS2kzT1pXekPd5QEFNhEU45Jtx3TfxlXAdWSRPA",
+        "y": "ooH0vrcUQECHQPxsx0TpHgjcGqMUlzRa-GYQBxDM65A"
+      },
+      "ciphertext": "xjcu0mpQsB5r0Ev86zALCSw2zvGfJmpZXaWC",
+      "contentIv": "/LlQJhRDmNpBe6J3",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "ZHi3Pkd8SHVfDbaS",
+          "wrappedKey": "Cf+2MS0SBXuj32ry568WCGRXt3HQ31rws3WYoIjqiZg85zk+v6Nzha1u2DpkjgDI"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "t1NOxKs2yh+Cp8D5",
+          "wrappedKey": "U/moeMA3pWYbf/euXUAOD137Riaa8uMaflQIc5nOLNBdWUSWUYDJC1p4KyClEJY/"
+        }
+      }
+    },
+    "signature": "84Ckk8uVGydym7fM5nABBnnrcVqILt/GAAoqSgKWD7iQI51lVOMffW6nEl1Ha4b/LunmDy//J4PK/vH+LOqcPg==",
+    "createdAt": "2026-07-12T15:14:43.852Z",
+    "deliveredAt": "2026-07-12T15:15:38.751Z",
+    "readAt": "2026-07-12T15:15:38.783Z",
+    "deliveryAttempts": 4,
+    "lastAttemptAt": "2026-07-12T15:15:23.255Z",
+    "nextAttemptAt": null
+  },
+  {
+    "id": "b2a85961-8aaf-4765-a516-182c12586c07",
+    "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "envelope": {
+      "version": 1,
+      "messageId": "b2a85961-8aaf-4765-a516-182c12586c07",
+      "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "createdAt": "2026-07-12T15:46:47.414Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "A5m_laVpXvhbO3VlWz7NL9-9NYUpMw6Khy1WRUAJBdE",
+        "y": "tlg163vUbjRJJeJ8GkLpKJiE04jMk8TvjPWA6lYAMoU"
+      },
+      "ciphertext": "l5kmWWCD9N3ACwPe87erhol1Boi11wInt5s=",
+      "contentIv": "16NY+ubqOHVZLg+j",
+      "keyBoxes": {
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "5v5Dq0JsdwmK011L",
+          "wrappedKey": "HaPcwuJp8H/BbzSAf8RcC636QTpEK4xfeAjKJtpiH1rNhy5n9l/3ptUl54KvZmmk"
+        },
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "zSgWOx0gQxpzZu91",
+          "wrappedKey": "lOPPSQo3Y8ZmIQ3LYwKpXSBiE6b1iIhO7Cvu0p7st/9gHbHwynd+shHccSFa5Ohd"
+        }
+      }
+    },
+    "signature": "VLJ7txGUvIwphCUR0Z8KXvFJ6JBpx/U8RlPDKkWdI35UGpjTZeK8tkgOibT8NGIKisOTKGXho3YVoAe291Og3Q==",
+    "createdAt": "2026-07-12T15:46:47.414Z",
+    "deliveredAt": "2026-07-12T15:46:56.668Z",
+    "readAt": "2026-07-12T15:46:56.688Z",
+    "deliveryAttempts": 2,
+    "lastAttemptAt": "2026-07-12T15:46:54.540Z",
+    "nextAttemptAt": null
+  },
+  {
+    "id": "93c0d208-39f7-4707-bc93-709a5c243ef8",
+    "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "envelope": {
+      "version": 1,
+      "messageId": "93c0d208-39f7-4707-bc93-709a5c243ef8",
+      "senderId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "recipientId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "createdAt": "2026-07-12T16:59:24.536Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "-25WAg1AlGXSvsP5Xjzt36J1VTESdlF2yujEh6CBizI",
+        "y": "F3t3i-2zjY2nep3tJLNFNryITWBL-pi7pyJ10PKsPrs"
+      },
+      "ciphertext": "yhegODuOomHyfsKK1gU4wmli9dX+H0svwChhAxiKH/J/",
+      "contentIv": "mYYKn23Hxe3FNRC7",
+      "keyBoxes": {
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "5Qva7+ZRws2uV3F5",
+          "wrappedKey": "ZoEV9OPlpXj1CNnfri8p8+G3m+Is+N3ZgaVPUZfrY02ayOYeVDEzFFq2Oz/DDJyu"
+        },
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "iCQZqxIItuJNCmTk",
+          "wrappedKey": "PcemgjEH2MXZQ/0rN0EEWr7AlhzvZ+uKfRxLBC2hQ2XHpWzlgZxrRm595HWulcwp"
+        }
+      }
+    },
+    "signature": "pMPPfYSeYedE6NeKiPXkZfiPTxsygsAezeU4Hqiti640g4OcurzwIWzakPF7U6jNFuFcku8HXIIUb5JAHMssOg==",
+    "createdAt": "2026-07-12T16:59:24.536Z",
+    "deliveredAt": "2026-07-12T16:59:26.576Z",
+    "readAt": "2026-07-12T16:59:26.595Z",
+    "deliveryAttempts": 1,
+    "lastAttemptAt": "2026-07-12T16:59:24.541Z",
+    "nextAttemptAt": null
+  },
+  {
+    "id": "b45c5572-2a67-4ff4-8b60-577171405b04",
+    "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "envelope": {
+      "version": 1,
+      "messageId": "b45c5572-2a67-4ff4-8b60-577171405b04",
+      "senderId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+      "recipientId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+      "createdAt": "2026-07-12T16:59:29.453Z",
+      "algorithm": "ECDH-P256/HKDF-SHA256/AES-256-GCM",
+      "ephemeralPublicKey": {
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [],
+        "kty": "EC",
+        "x": "nmKCMg8iJueAulF331EQBKwlZMzFBeMvxyFzaG9sBYo",
+        "y": "fqDu8MrcRucR4pwWkkjRC4p528vd8ZBUB7jenZDwDhw"
+      },
+      "ciphertext": "VhSt7LQp/9KAre4o4kpJ8/SSm/VY6w==",
+      "contentIv": "tdmID0I+hZQqTFYd",
+      "keyBoxes": {
+        "ed025267-463b-4ca4-ae57-0df5e78d1d8c": {
+          "iv": "qM4ep8IQ+lOnhpdH",
+          "wrappedKey": "XzFG3sT2RpCgjAM7THtFmtZjPMmyxp9xvdcrpEd4ZS6baydgfhz7F8ZJboLMw17K"
+        },
+        "98b4f652-5ba7-4cce-967f-3e4e955ece16": {
+          "iv": "W5RLbySxh4I7T0iQ",
+          "wrappedKey": "LGBLEtkELWhG/uUFc3nOWVHa6/uRh0lK5RifaxaAbUwkasdKQ2SAF7V9nzK2tTep"
+        }
+      }
+    },
+    "signature": "R+sUwrESlVuyfxMZUVQhSPpr4y3kgtE/5SPDTA7eE9YTGA7Ya8toYj3MUhykWcyYCchzJCSEnlrl2AkyeBFbAg==",
+    "createdAt": "2026-07-12T16:59:29.453Z",
+    "deliveredAt": "2026-07-12T16:59:29.476Z",
+    "readAt": "2026-07-12T16:59:29.492Z",
+    "deliveryAttempts": 1,
+    "lastAttemptAt": "2026-07-12T16:59:29.458Z",
+    "nextAttemptAt": null
+  }
+]

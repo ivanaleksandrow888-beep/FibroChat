@@ -1,0 +1,27 @@
+[
+  {
+    "id": "3ded7474-112d-420d-912f-3b110e585813",
+    "userId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "userNickname": "tim",
+    "status": "answered",
+    "subject": "Продление подписки",
+    "messages": [
+      {
+        "id": "2647f0c0-b0f5-4f1f-a7a5-6fc4f97ffd0e",
+        "authorId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+        "authorRole": "user",
+        "text": "продлить подписку",
+        "createdAt": "2026-07-12T15:04:32.664Z"
+      },
+      {
+        "id": "fb9e976f-a517-4403-866f-d0aadf8118fd",
+        "authorId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+        "authorRole": "super_admin",
+        "text": "сейчас отправлю адрес",
+        "createdAt": "2026-07-12T15:04:58.482Z"
+      }
+    ],
+    "createdAt": "2026-07-12T15:04:32.664Z",
+    "updatedAt": "2026-07-12T15:04:58.482Z"
+  }
+]

@@ -1,0 +1,123 @@
+[
+  {
+    "id": "e8135843-c75d-47d4-9066-3fae4ab07ccc",
+    "userId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+    "refreshHash": "f5fc425e01ed85a5efe88d7d9dee800e742d90f5f31531e77c3a14c437b9e67e",
+    "createdAt": "2026-07-12T14:03:59.009Z",
+    "lastUsedAt": "2026-07-12T15:02:45.610Z",
+    "expiresAt": "2026-08-11T14:03:59.009Z",
+    "revokedAt": null,
+    "revokeReason": null
+  },
+  {
+    "id": "9c6aa8da-96c1-4537-8b47-7ecb1a3a7b7d",
+    "userId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5",
+    "refreshHash": "ed3a8e30910262383720b0aafe11689291a162b7b3309748437d6f3c667bdc6e",
+    "createdAt": "2026-07-12T14:04:14.312Z",
+    "lastUsedAt": "2026-07-12T15:02:45.606Z",
+    "expiresAt": "2026-08-11T14:04:14.312Z",
+    "revokedAt": null,
+    "revokeReason": null
+  },
+  {
+    "id": "18372eae-e66d-4546-a45a-047db65df650",
+    "userId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+    "refreshHash": "b76d82e6f5d22fc4bccf2a99926f5eb06c9a81e52ceffc41a2228a82f28572e0",
+    "createdAt": "2026-07-12T15:03:30.901Z",
+    "lastUsedAt": "2026-07-12T15:13:08.115Z",
+    "expiresAt": "2026-08-11T15:03:30.901Z",
+    "revokedAt": null,
+    "revokeReason": null
+  },
+  {
+    "id": "96413299-f72b-4735-b54c-73b7282666fa",
+    "userId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5",
+    "refreshHash": "f686f69c43830f65fecfa85de6c08905989c37edbad99ae2ce25938366c3f81e",
+    "createdAt": "2026-07-12T15:03:41.373Z",
+    "lastUsedAt": "2026-07-12T15:13:08.590Z",
+    "expiresAt": "2026-08-11T15:03:41.373Z",
+    "revokedAt": null,
+    "revokeReason": null
+  },
+  {
+    "id": "9e3f9a89-d850-4b2b-bb9e-b86c710e6d25",
+    "userId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+    "refreshHash": "fbc22ebeb1ce3cf9b16790e61652a0dd00a9dee4bcc1aa1ba2f060a002934441",
+    "createdAt": "2026-07-12T15:13:50.466Z",
+    "lastUsedAt": "2026-07-12T15:34:21.609Z",
+    "expiresAt": "2026-08-11T15:13:50.466Z",
+    "revokedAt": null,
+    "revokeReason": null
+  },
+  {
+    "id": "32665f61-79a4-4a1e-96ab-5d8f0a5e8f96",
+    "userId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5",
+    "refreshHash": "d3d1d37d948835e3d80e933433396f101adc1a74d1c7779959c454558e1eb4d0",
+    "createdAt": "2026-07-12T15:15:21.373Z",
+    "lastUsedAt": "2026-07-12T15:44:15.608Z",
+    "expiresAt": "2026-08-11T15:15:21.373Z",
+    "revokedAt": null,
+    "revokeReason": null
+  },
+  {
+    "id": "55a32bda-72e4-4aa3-ac7e-c50e0c1c4830",
+    "userId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+    "refreshHash": "1f8280d89cf4965fedc77e2039e6b37c1e7dc77a3a50064df802e4cea30fd81e",
+    "createdAt": "2026-07-12T15:34:48.165Z",
+    "lastUsedAt": "2026-07-12T15:44:15.605Z",
+    "expiresAt": "2026-08-11T15:34:48.165Z",
+    "revokedAt": null,
+    "revokeReason": null
+  },
+  {
+    "id": "57f3e15e-045a-4609-b251-89aa495e2995",
+    "userId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+    "refreshHash": "5f0dbb8ca317c19e3fad3ee298419682cb4fb7691cc2f0e39c5d354255ff1ef5",
+    "createdAt": "2026-07-12T15:46:22.173Z",
+    "lastUsedAt": "2026-07-12T16:47:45.597Z",
+    "expiresAt": "2026-08-11T15:46:22.173Z",
+    "revokedAt": null,
+    "revokeReason": null
+  },
+  {
+    "id": "5faf57d4-c1dc-4fde-a7bb-c633fffab03e",
+    "userId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5",
+    "refreshHash": "3c93062fb5d3728beffbc05ab1c432fa00eb90dc40a36cb6e5ec638753e65e7f",
+    "createdAt": "2026-07-12T15:46:28.296Z",
+    "lastUsedAt": "2026-07-12T16:47:45.593Z",
+    "expiresAt": "2026-08-11T15:46:28.296Z",
+    "revokedAt": null,
+    "revokeReason": null
+  },
+  {
+    "id": "cecb96f6-502d-402d-be1b-90b381a572ee",
+    "userId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+    "deviceId": "ba5e54eb-9e12-48f6-b5c9-4bd09ff1cfd5",
+    "refreshHash": "8d71d6217b893a4e6d172a9b22d8136d759a9b5b559d113bf6331ac1810ae96a",
+    "createdAt": "2026-07-12T16:58:06.769Z",
+    "lastUsedAt": "2026-07-12T21:59:45.743Z",
+    "expiresAt": "2026-08-11T16:58:06.769Z",
+    "revokedAt": null,
+    "revokeReason": null
+  },
+  {
+    "id": "7f6a62d4-1446-4bf9-8860-abf9623cc3ec",
+    "userId": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
+    "deviceId": "50f20f29-dec4-40da-894a-e78a995762c5",
+    "refreshHash": "9a785426e83313f385560c9ff52c1afe66b2d8717d615336059bb9835de0c1bc",
+    "createdAt": "2026-07-12T16:58:12.311Z",
+    "lastUsedAt": "2026-07-12T21:59:45.740Z",
+    "expiresAt": "2026-08-11T16:58:12.311Z",
+    "revokedAt": null,
+    "revokeReason": null
+  }
+]

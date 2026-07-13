@@ -17,12 +17,13 @@ const state = {
   realtimeConnected: false,
   supportTickets: [],
   devices: [],
-  currentDevice: null
+  currentDevice: null,
+  bootstrapRequired: false
 };
 const $ = (selector) => document.querySelector(selector);
 const el = {
   authView: $("#auth-view"), appView: $("#app-view"), registerTab: $("#register-tab"), loginTab: $("#login-tab"),
-  inviteField: $("#invite-field"), invite: $("#invite"), nickname: $("#nickname"), password: $("#password"), deviceName: $("#device-name"),
+  inviteField: $("#invite-field"), invite: $("#invite"), nickname: $("#nickname"), password: $("#password"), passwordConfirmField: $("#password-confirm-field"), passwordConfirm: $("#password-confirm"), deviceName: $("#device-name"),
   authForm: $("#auth-form"), submit: $("#submit-button"), authMessage: $("#auth-message"), nodeDot: $("#node-dot"), nodeText: $("#node-text"),
   profileNickname: $("#profile-nickname"), profileStatus: $("#profile-status"), profileSubscription: $("#profile-subscription"), currentRole: $("#current-role"),
   logout: $("#logout-button"), contactsList: $("#contacts-list"), refreshContacts: $("#refresh-contacts"),
@@ -144,7 +145,13 @@ function bytesToBase64(bytes) { let binary = ""; for (const byte of new Uint8Arr
 function base64ToBytes(value) { const binary = atob(value); const bytes = new Uint8Array(binary.length); for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i); return bytes; }
 function canonicalEnvelope(e) { return JSON.stringify({ version:e.version,messageId:e.messageId,senderId:e.senderId,recipientId:e.recipientId,createdAt:e.createdAt,algorithm:e.algorithm,ephemeralPublicKey:e.ephemeralPublicKey,ciphertext:e.ciphertext,contentIv:e.contentIv,keyBoxes:e.keyBoxes }); }
 function identityStorageKey(userId) { return `fibrochat_identity_${userId}`; }
-function deviceId(){let id=localStorage.getItem("fibrochat_device_id");if(!id){id=crypto.randomUUID();localStorage.setItem("fibrochat_device_id",id);}return id;}
+function uuidV4(){
+  if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();
+  const bytes=new Uint8Array(16);globalThis.crypto.getRandomValues(bytes);bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+  const hex=[...bytes].map(x=>x.toString(16).padStart(2,"0"));
+  return `${hex.slice(0,4).join("")}-${hex.slice(4,6).join("")}-${hex.slice(6,8).join("")}-${hex.slice(8,10).join("")}-${hex.slice(10).join("")}`;
+}
+function deviceId(){let id=localStorage.getItem("fibrochat_device_id");if(!id){id=uuidV4();localStorage.setItem("fibrochat_device_id",id);}return id;}
 function guessedDeviceName(){const platform=navigator.userAgentData?.platform||navigator.platform||"Устройство";const ua=navigator.userAgent;const browser=ua.includes("Edg/")?"Edge":ua.includes("Chrome/")?"Chrome":ua.includes("Firefox/")?"Firefox":ua.includes("Safari/")?"Safari":"Браузер";return `${platform} · ${browser}`.slice(0,80);}
 function deviceStatusName(status){return ({trusted:"Доверенное",pending:"Ожидает подтверждения",revoked:"Доступ отозван"})[status]||status;}
 
@@ -269,7 +276,7 @@ async function deriveWrapKey(privateKey, publicJwk, messageId, userId) {
 }
 async function createEnvelope(text, recipient) {
   if (!state.identity) throw new Error("Приватные ключи этого устройства не загружены");
-  const messageId = crypto.randomUUID();
+  const messageId = uuidV4();
   const createdAt = new Date().toISOString();
   const contentKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
   const rawContentKey = await crypto.subtle.exportKey("raw", contentKey);
@@ -311,15 +318,27 @@ async function decryptMessage(message) {
 }
 
 function setMode(mode) {
-  state.mode = mode;
-  const registering = mode === "register";
+  state.mode = state.bootstrapRequired ? "register" : mode;
+  const registering = state.mode === "register";
   el.registerTab.classList.toggle("active", registering);
   el.loginTab.classList.toggle("active", !registering);
-  el.inviteField.classList.toggle("hidden", !registering);
-  el.submit.textContent = registering ? "Создать аккаунт и ключи" : "Войти";
-  setAuthMessage("");
+  el.registerTab.parentElement.classList.toggle("hidden", state.bootstrapRequired);
+  el.inviteField.classList.toggle("hidden", !registering || state.bootstrapRequired);
+  el.passwordConfirmField.classList.toggle("hidden", !registering);
+  el.submit.textContent = state.bootstrapRequired ? "Создать главного администратора" : registering ? "Создать аккаунт и ключи" : "Войти";
+  setAuthMessage(state.bootstrapRequired ? "Первый запуск: создайте единственный аккаунт суперадминистратора." : "", state.bootstrapRequired ? "success" : "");
 }
-async function checkHealth() { try { const data = await api("/api/health", { method: "GET" }); el.nodeDot.classList.add("online"); el.nodeText.textContent = `${data.networkName} · ${data.networkId || "сеть"} · v${data.version}`; } catch { el.nodeDot.classList.remove("online"); el.nodeText.textContent = "Головной узел недоступен"; } }
+async function checkHealth() {
+  try {
+    const data = await api("/api/health", { method: "GET" });
+    state.bootstrapRequired = Boolean(data.bootstrapRequired);
+    el.nodeDot.classList.add("online");
+    el.nodeText.textContent = state.bootstrapRequired ? `Сеть готова к первичной настройке · v${data.version}` : `${data.networkName} · ${data.networkId || "сеть"} · v${data.version}`;
+    setMode(state.bootstrapRequired ? "register" : state.mode);
+  } catch {
+    el.nodeDot.classList.remove("online"); el.nodeText.textContent = "Головной узел недоступен";
+  }
+}
 function showAuth(clearTokens = true) { clearInterval(state.pollingTimer); stopRealtime(); if(clearTokens)clearSession(); state.user = null; state.identity = null; state.activeContact = null; el.appView.classList.add("hidden"); el.authView.classList.remove("hidden"); }
 function showApp(user) {
   state.user = user; el.authView.classList.add("hidden"); el.appView.classList.remove("hidden");
@@ -349,12 +368,13 @@ async function restoreSession() {
 async function handleAuth(event) {
   event.preventDefault(); setAuthMessage("Подготовка криптографических ключей…");
   const password = el.password.value;
+  if(state.mode === "register" && password !== el.passwordConfirm.value){setAuthMessage("Пароли не совпадают");return;}
   try {
     let generated = null;
     const payload = { nickname: el.nickname.value.trim(), password, deviceId: deviceId(), deviceName: el.deviceName.value.trim() || guessedDeviceName() };
     if (state.mode === "register") {
       generated = await createIdentityBundle();
-      payload.invite = el.invite.value.trim();
+      payload.invite = state.bootstrapRequired ? "FIBRO-OWNER-2026" : el.invite.value.trim();
       payload.encryptionPublicKey = generated.encryptionPublicKey;
       payload.signingPublicKey = generated.signingPublicKey;
     }
@@ -376,7 +396,7 @@ async function handleAuth(event) {
     if (generated || !localStorage.getItem(identityStorageKey(data.user.id))) await saveIdentity(data.user.id, password, bundle);
     localStorage.removeItem("fibrochat_imported_vault_user");
     state.identity = await importIdentity(bundle);
-    state.currentDevice = data.device || null; setAuthMessage("Ключи загружены. Готово.", "success"); showApp(data.user);
+    state.currentDevice = data.device || null; state.bootstrapRequired=false; setAuthMessage("Ключи загружены. Готово.", "success"); showApp(data.user);
   } catch (error) { setAuthMessage(error.message); }
 }
 async function loadContacts(render = true) { try { const data = await api("/api/contacts", { method: "GET" }); state.contacts = data.contacts; if (state.activeContact) { state.activeContact = state.contacts.find((c) => c.id === state.activeContact.id) || null; if (state.activeContact) updateChatHeader(); } if (!render) return renderContacts(); renderContacts(); } catch (error) { el.contactsList.innerHTML = `<p class="message">${escapeHtml(error.message)}</p>`; } }

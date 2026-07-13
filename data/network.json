@@ -1,24 +1,21 @@
 {
-  "nodeId": "9460cb4c-9ef0-477f-9c27-1c5943f9fb90",
-  "createdAt": "2026-07-12T12:58:22.235Z",
-  "headUserId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
-  "networkName": "FibroChat Network",
-  "headNickname": "Bob",
-  "activatedAt": "2026-07-11T23:17:57.561Z",
-  "networkId": "fibro-53967bdd",
+  "nodeId": "fac604f9-0e03-45dc-893e-8619017f5727",
+  "networkId": "fibro-f91828f0",
   "protocolVersion": "1.1",
   "publicBaseUrl": "",
   "signingPrivateKey": {
     "kty": "EC",
-    "x": "ZUyJ0bJSVHidneXeQd73ZC3Uzl9qtU154iu6ZJkm3Oc",
-    "y": "TMfBGVwFX1QAUrd4xcljbi0v_77Ea0U3eqM2AeJmbk0",
+    "x": "VAVz2RsMVm7m6YeeymRihrPTpwN6QY0zJjZ5y-fFLho",
+    "y": "dTyeOPaC5poM1QVPYgHg5h8beSyeTG2FwNP2yyKBquU",
     "crv": "P-256",
-    "d": "fq0UucLc2sbNkfCFYCLM_-1pByzU_1g5hPI1aVrjuOc"
+    "d": "6LZOFNAn0HWJBN8gGbHqSXPu7LlSICrAbuyuJ2AwkX0"
   },
   "signingPublicKey": {
     "kty": "EC",
-    "x": "ZUyJ0bJSVHidneXeQd73ZC3Uzl9qtU154iu6ZJkm3Oc",
-    "y": "TMfBGVwFX1QAUrd4xcljbi0v_77Ea0U3eqM2AeJmbk0",
+    "x": "VAVz2RsMVm7m6YeeymRihrPTpwN6QY0zJjZ5y-fFLho",
+    "y": "dTyeOPaC5poM1QVPYgHg5h8beSyeTG2FwNP2yyKBquU",
     "crv": "P-256"
-  }
+  },
+  "createdAt": "2026-07-13T14:38:16.129Z",
+  "networkName": "FibroChat Network"
 }

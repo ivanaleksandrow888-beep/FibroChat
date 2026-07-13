@@ -9,13 +9,14 @@
 <body>
   <main class="shell">
     <section id="auth-view" class="card auth-card">
-      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>Federation Core v0.2.0</p></div></div>
+      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>PostgreSQL Core v0.4.1</p></div></div>
       <div class="node-line"><span id="node-dot" class="dot"></span><span id="node-text">Проверка головного узла…</span></div>
       <div class="tabs"><button id="register-tab" class="tab active" type="button">Регистрация</button><button id="login-tab" class="tab" type="button">Вход</button></div>
       <form id="auth-form">
         <label id="invite-field">Код приглашения<input id="invite" autocomplete="off" placeholder="FIBRO-OWNER-2026"></label>
         <label>Никнейм<input id="nickname" autocomplete="username" placeholder="Например, Ivan"></label>
         <label>Пароль<input id="password" type="password" autocomplete="current-password" placeholder="Минимум 8 символов"></label>
+        <label id="password-confirm-field">Повторите пароль<input id="password-confirm" type="password" autocomplete="new-password" placeholder="Введите пароль ещё раз"></label>
         <label>Название этого устройства<input id="device-name" autocomplete="off" maxlength="80" placeholder="Например, Домашний компьютер"></label>
         <button id="submit-button" class="primary" type="submit">Создать аккаунт</button>
       </form>

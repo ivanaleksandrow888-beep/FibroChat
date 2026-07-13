@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.3.0";
+const CLIENT_VERSION = "0.4.0";
 const CLIENT_PROTOCOL = "1.1";
 
 const state = {
@@ -33,6 +33,7 @@ const el = {
   supportForm: $("#support-form"), supportSubject: $("#support-subject"), supportText: $("#support-text"), supportMessage: $("#support-message"), supportList: $("#support-list"),
   deviceSummary: $("#device-summary"), devicesList: $("#devices-list"), refreshDevices: $("#refresh-devices"),
   vaultPassword: $("#vault-password"), exportVault: $("#export-vault"), vaultMessage: $("#vault-message"), vaultImportFile: $("#vault-import-file"), vaultImportMessage: $("#vault-import-message"), logoutAll: $("#logout-all-button"),
+  currentPassword: $("#current-password"), newPassword: $("#new-password"), newPasswordConfirm: $("#new-password-confirm"), changePassword: $("#change-password"), passwordMessage: $("#password-message"),
   networkProfileFile: $("#network-profile-file"), networkProfileResult: $("#network-profile-result"), profileNetworkName: $("#profile-network-name"), profileNetworkId: $("#profile-network-id"), openProfileNetwork: $("#open-profile-network"), networkProfileMessage: $("#network-profile-message"),
   networkNameInput: $("#network-name-input"), networkUrlInput: $("#network-url-input"), saveNetworkSettings: $("#save-network-settings"), downloadNetworkProfile: $("#download-network-profile"), networkSettingsMessage: $("#network-settings-message"), networkBackupPassword: $("#network-backup-password"), downloadNetworkBackup: $("#download-network-backup"), networkBackupMessage: $("#network-backup-message")
 };
@@ -500,6 +501,16 @@ el.messageForm.addEventListener("submit", sendMessage);
 el.messageInput.addEventListener("input", updateComposer);
 el.messageInput.addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); if (!el.sendButton.disabled) el.messageForm.requestSubmit(); } });
 el.backToContacts.addEventListener("click", closeMobileChat);
+
+
+el.changePassword.addEventListener("click",async()=>{
+  const currentPassword=el.currentPassword.value;const newPassword=el.newPassword.value;const confirmPassword=el.newPasswordConfirm.value;
+  el.passwordMessage.className="message";
+  if(newPassword.length<10){el.passwordMessage.textContent="Новый пароль должен содержать минимум 10 символов.";return;}
+  if(newPassword!==confirmPassword){el.passwordMessage.textContent="Новые пароли не совпадают.";return;}
+  el.changePassword.disabled=true;el.passwordMessage.textContent="Изменение пароля…";
+  try{await api("/api/account/password",{method:"POST",body:JSON.stringify({currentPassword,newPassword})});el.currentPassword.value="";el.newPassword.value="";el.newPasswordConfirm.value="";el.passwordMessage.textContent="Пароль изменён. Остальные сессии завершены.";el.passwordMessage.className="message success";}catch(error){el.passwordMessage.textContent=error.message;}finally{el.changePassword.disabled=false;}
+});
 
 el.refreshDevices.addEventListener("click",()=>loadDevices());
 el.exportVault.addEventListener("click", exportKeyVault);

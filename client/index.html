@@ -54,6 +54,15 @@
           <div class="section-head"><div><h3>Доверенные устройства</h3><p id="device-summary">Загрузка…</p></div><button id="refresh-devices" class="icon-button" type="button">↻</button></div>
           <div id="devices-list" class="devices-list"><p class="muted">Загрузка…</p></div>
           <button id="logout-all-button" class="danger-button session-danger" type="button">Завершить все сессии</button>
+          <div class="vault-box password-box">
+            <h4>Смена пароля</h4>
+            <p>После смены пароля остальные активные сессии будут завершены.</p>
+            <input id="current-password" type="password" autocomplete="current-password" placeholder="Текущий пароль">
+            <input id="new-password" type="password" autocomplete="new-password" minlength="10" placeholder="Новый пароль — минимум 10 символов">
+            <input id="new-password-confirm" type="password" autocomplete="new-password" minlength="10" placeholder="Повторите новый пароль">
+            <button id="change-password" class="mini-button" type="button">Изменить пароль</button>
+            <p id="password-message" class="message"></p>
+          </div>
           <div class="vault-box">
             <h4>Резервная копия ключей</h4>
             <p>Файл зашифрован паролем аккаунта. Храните его отдельно и никому не отправляйте.</p>

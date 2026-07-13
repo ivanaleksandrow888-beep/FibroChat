@@ -1,38 +1,28 @@
-# FibroChat v0.0.5 — Secure Envelope
+# FibroChat v0.4.0 — PostgreSQL Core
 
-Первый релиз со сквозным шифрованием текста на стороне браузера.
+FibroChat is a managed encrypted messaging network with a single superadministrator, delegated administrators, invitation registration, trusted devices, client-side encrypted messages and PostgreSQL persistence.
 
-## Что работает
+## Required environment
 
-- для каждого аккаунта браузер генерирует отдельные ключи ECDH P-256 и ECDSA P-256;
-- приватные ключи шифруются паролем через PBKDF2 + AES-GCM и сохраняются только в браузере;
-- текст сообщения шифруется до отправки на головной узел;
-- головной узел получает и хранит только зашифрованный конверт;
-- ключ содержимого оборачивается отдельно для отправителя и получателя;
-- каждый конверт подписывается отправителем;
-- сервер и получатель проверяют цифровую подпись;
-- отправитель может расшифровать собственную историю;
-- существующие аккаунты из v0.0.4 получают ключи при первом входе.
+- `DATABASE_URL` — internal PostgreSQL connection URL from Coolify.
+- `PORT` — optional, defaults to `3000`.
+- `FIBRO_NODE_ID` — optional stable node identifier.
+- `FIBRO_NODE_REGION` — optional region label.
+- `DATABASE_SSL=true` only when the database requires TLS.
 
-## Важные ограничения этой версии
+## First superadministrator
 
-- приватные ключи привязаны к конкретному профилю браузера;
-- очистка данных браузера уничтожит локальный приватный ключ;
-- вход на другом устройстве пока не восстановит старые сообщения;
-- перенос и резервное копирование ключей появятся в следующем релизе;
-- это инженерная альфа-версия, а не завершённый криптографический продукт, прошедший независимый аудит.
+Register the first and only superadministrator with invite code:
 
-## Обновление с v0.0.4
+`FIBRO-OWNER-2026`
 
-1. Остановите сервер: `Ctrl + C`.
-2. Сделайте копию папки `C:\FibroChat\data`.
-3. Скопируйте файлы релиза поверх `C:\FibroChat`.
-4. Сохраните свои `data/users.json` и `data/invites.json`.
-5. Старый `data/messages.json` из v0.0.4 содержит открытый текст. Переименуйте его, например, в `messages-v0.0.4-plaintext-backup.json`.
-6. Используйте новый пустой `data/messages.json` из релиза.
-7. Запустите `npm start`.
-8. При первом входе существующего пользователя браузер создаст и зарегистрирует его ключи.
+After that, administrators can create ordinary user invitations. Only the superadministrator can approve users and assign or remove administrators.
 
-## Проверка
+## Local start
 
-Откройте обычное окно и окно инкогнито, войдите двумя аккаунтами и отправьте сообщения. Затем откройте `data/messages.json`: текста сообщений там быть не должно — только шифротекст, IV, публичный эфемерный ключ и подпись.
+```bash
+npm install
+npm start
+```
+
+Without `DATABASE_URL`, the application uses a JSON development fallback. Production must use PostgreSQL.

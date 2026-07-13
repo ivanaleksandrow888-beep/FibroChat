@@ -1,13 +1,13 @@
 # Changelog
 
-## v0.0.5 — Secure Envelope
+## 0.4.0 — PostgreSQL Core
 
-- добавлена генерация криптографических ключей на клиенте;
-- добавлено шифрование приватного набора ключей паролем;
-- добавлен ECDH P-256 для согласования ключей;
-- добавлены HKDF-SHA-256 и AES-256-GCM для конвертов сообщений;
-- добавлена цифровая подпись ECDSA P-256;
-- сервер больше не принимает открытый текст сообщения;
-- добавлена проверка подписи на сервере и у получателя;
-- добавлена миграция существующих аккаунтов без ключей;
-- версия API и клиента обновлена до 0.0.5.
+- PostgreSQL became the primary persistent store.
+- Added automatic SQL migrations.
+- Added one-superadministrator database constraint.
+- Administrators retain permission to issue invitations.
+- Added password change inside the account; other sessions are revoked.
+- Added server-side QR device approval challenge API.
+- Added cluster node registry and multi-node cache refresh groundwork.
+- Replaced the monolithic entry point with a small launcher plus configuration and storage modules.
+- Removed production JSON data from version control.

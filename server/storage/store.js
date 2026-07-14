@@ -9,7 +9,7 @@ const config = require("../config");
 const COLLECTION_TABLES = Object.freeze({
   users: "users", invites: "invites", messages: "messages", audit: "audit_log",
   notifications: "notifications", support: "support_tickets", devices: "devices",
-  sessions: "sessions", deviceApprovals: "device_approvals"
+  sessions: "sessions", deviceApprovals: "device_approvals", pushSubscriptions: "push_subscriptions"
 });
 
 class FibroStore {
@@ -71,7 +71,7 @@ class FibroStore {
   async flush() { await this.writeChain; }
 
   legacyPath(name) {
-    const map = { users:"users.json", invites:"invites.json", messages:"messages.json", audit:"audit.json", notifications:"notifications.json", support:"support.json", devices:"devices.json", sessions:"sessions.json", deviceApprovals:"device-approvals.json", network:"network.json" };
+    const map = { users:"users.json", invites:"invites.json", messages:"messages.json", audit:"audit.json", notifications:"notifications.json", support:"support.json", devices:"devices.json", sessions:"sessions.json", deviceApprovals:"device-approvals.json", pushSubscriptions:"push-subscriptions.json", network:"network.json" };
     return path.join(config.DATA_DIR, map[name]);
   }
 

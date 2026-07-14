@@ -1,8 +1,8 @@
 {
   "name": "fibrochat",
-  "version": "0.4.1",
+  "version": "0.4.3",
   "private": true,
-  "description": "FibroChat PostgreSQL Core",
+  "description": "FibroChat PostgreSQL Core with PWA and Web Push",
   "scripts": {
     "start": "node server/server.js",
     "check": "node --check server/server.js && node --check server/application.js && node --check server/storage/store.js && node --check client/app.js",
@@ -10,6 +10,7 @@
     "smoke": "node scripts/smoke-test.js"
   },
   "dependencies": {
-    "pg": "^8.22.0"
+    "pg": "^8.22.0",
+    "web-push": "^3.6.7"
   }
 }

@@ -4,6 +4,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const webpush = require("web-push");
 const { URL } = require("url");
 const config = require("./config");
 const store = require("./storage/store");
@@ -22,6 +23,7 @@ const SUPPORT_FILE = path.join(DATA_DIR, "support.json");
 const DEVICES_FILE = path.join(DATA_DIR, "devices.json");
 const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
 const DEVICE_APPROVALS_FILE = path.join(DATA_DIR, "device-approvals.json");
+const PUSH_SUBSCRIPTIONS_FILE = path.join(DATA_DIR, "push-subscriptions.json");
 const OWNER_INVITE = "FIBRO-OWNER-2026";
 const ACCESS_TTL_MS = 15 * 60 * 1000;
 const REFRESH_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -40,7 +42,7 @@ const PROTOCOL_CAPABILITIES = ["auth.session.v1","identity.keys.v1","messages.se
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8", ".webmanifest": "application/manifest+json; charset=utf-8",
   ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".ico": "image/x-icon"
 };
 const accessTokens = new Map();
@@ -64,6 +66,11 @@ async function ensureDataStore() {
   }
   if (!network.createdAt) { network.createdAt = new Date().toISOString(); networkChanged = true; }
   if (!network.networkName) { network.networkName = "FibroChat Network"; networkChanged = true; }
+  if (!network.webPushVapid || !network.webPushVapid.publicKey || !network.webPushVapid.privateKey) {
+    network.webPushVapid = webpush.generateVAPIDKeys();
+    networkChanged = true;
+  }
+  webpush.setVapidDetails("mailto:admin@fibrochat.local", network.webPushVapid.publicKey, network.webPushVapid.privateKey);
   if (!network.headUserId) {
     const head = readJson(USERS_FILE).find((user) => user.role === "super_admin");
     if (head) { network.headUserId = head.id; network.headNickname = head.nickname; network.activatedAt ||= head.approvedAt || head.createdAt; networkChanged = true; }
@@ -75,7 +82,7 @@ async function ensureDataStore() {
 const collectionByFile = new Map([
   [USERS_FILE,"users"],[INVITES_FILE,"invites"],[MESSAGES_FILE,"messages"],[AUDIT_FILE,"audit"],
   [NOTIFICATIONS_FILE,"notifications"],[SUPPORT_FILE,"support"],[DEVICES_FILE,"devices"],
-  [SESSIONS_FILE,"sessions"],[DEVICE_APPROVALS_FILE,"deviceApprovals"]
+  [SESSIONS_FILE,"sessions"],[DEVICE_APPROVALS_FILE,"deviceApprovals"],[PUSH_SUBSCRIPTIONS_FILE,"pushSubscriptions"]
 ]);
 function readJson(filePath) { return store.collection(collectionByFile.get(filePath)); }
 function readObject(filePath, fallback = {}) { return filePath === NETWORK_FILE ? store.singleton("network", fallback) : fallback; }
@@ -90,7 +97,22 @@ function hashPassword(password,salt=crypto.randomBytes(16).toString("hex")){retu
 function verifyPassword(password,salt,expectedHash){const actual=Buffer.from(hashPassword(password,salt).hash,"hex");const expected=Buffer.from(expectedHash,"hex");return actual.length===expected.length&&crypto.timingSafeEqual(actual,expected);}
 function subscriptionState(user){ if(user.status==="suspended") return "suspended"; if(user.status!=="active") return "pending"; if(!user.subscriptionEndsAt) return "expired"; const left=new Date(user.subscriptionEndsAt).getTime()-Date.now(); if(left<=0) return "expired"; if(left<=7*86400000) return "expiring"; return "active"; }
 function subscriptionDaysRemaining(user){ if(!user.subscriptionEndsAt) return 0; return Math.max(0, Math.ceil((new Date(user.subscriptionEndsAt).getTime()-Date.now())/86400000)); }
-function notify(userId,type,title,text,details={}){const list=readJson(NOTIFICATIONS_FILE);const item={id:crypto.randomUUID(),userId,type,title,text,details,createdAt:new Date().toISOString(),readAt:null};list.push(item);if(list.length>10000)list.splice(0,list.length-10000);writeJson(NOTIFICATIONS_FILE,list);sendEvent(userId,"notification",publicNotification(item));return item;}
+async function sendWebPush(userId,payload={}){
+  const subscriptions=readJson(PUSH_SUBSCRIPTIONS_FILE);
+  const targets=subscriptions.filter(item=>item.userId===userId&&item.subscription?.endpoint);
+  if(!targets.length)return;
+  const expired=new Set();
+  await Promise.all(targets.map(async item=>{
+    try{
+      await webpush.sendNotification(item.subscription,JSON.stringify({title:payload.title||"FibroChat",body:payload.body||"Новое событие",tag:payload.tag||"fibrochat",url:payload.url||"/"}),{TTL:60});
+    }catch(error){
+      if(error?.statusCode===404||error?.statusCode===410)expired.add(item.id);
+      else console.error("Web Push failed:",error?.statusCode||error?.message||error);
+    }
+  }));
+  if(expired.size)writeJson(PUSH_SUBSCRIPTIONS_FILE,subscriptions.filter(item=>!expired.has(item.id)));
+}
+function notify(userId,type,title,text,details={}){const list=readJson(NOTIFICATIONS_FILE);const item={id:crypto.randomUUID(),userId,type,title,text,details,createdAt:new Date().toISOString(),readAt:null};list.push(item);if(list.length>10000)list.splice(0,list.length-10000);writeJson(NOTIFICATIONS_FILE,list);sendEvent(userId,"notification",publicNotification(item));void sendWebPush(userId,{title,body:text,tag:`notification-${item.id}`,url:"/"});return item;}
 function ensureSubscriptionNotifications(user){const list=readJson(NOTIFICATIONS_FILE);const state=subscriptionState(user);const days=subscriptionDaysRemaining(user);let changed=false;const addOnce=(type,title,text)=>{if(!list.some(n=>n.userId===user.id&&n.type===type)){list.push({id:crypto.randomUUID(),userId:user.id,type,title,text,details:{subscriptionEndsAt:user.subscriptionEndsAt||null},createdAt:new Date().toISOString(),readAt:null});changed=true;}};if(state==="expired")addOnce(`SUB_EXPIRED_${user.subscriptionEndsAt||"none"}`,"Подписка истекла","Сетевые функции отключены. Откройте поддержку, чтобы получить инструкции по продлению.");else if(state==="expiring"){for(const threshold of [7,3,1])if(days<=threshold)addOnce(`SUB_EXPIRING_${threshold}_${user.subscriptionEndsAt}`,"Подписка скоро истечёт",`До окончания доступа осталось ${days} дн.`);}if(changed)writeJson(NOTIFICATIONS_FILE,list);}
 function publicNotification(n){return{id:n.id,type:n.type,title:n.title,text:n.text,details:n.details||{},createdAt:n.createdAt,readAt:n.readAt||null};}
 function publicTicket(t){return{id:t.id,userId:t.userId,userNickname:t.userNickname,status:t.status,subject:t.subject,messages:t.messages||[],createdAt:t.createdAt,updatedAt:t.updatedAt};}
@@ -219,6 +241,10 @@ function createDeviceApproval(userId,deviceId){
 async function handleApi(req,res,pathname,searchParams){
   if(!protocolCompatible(req,res))return true;
   if(pathname==="/api/health"&&req.method==="GET"){const network=readObject(NETWORK_FILE,{});const users=readJson(USERS_FILE);sendJson(res,200,{ok:true,service:"FibroChat Head Node",version:APP_VERSION,nodeId:network.nodeId,networkId:network.networkId,networkName:network.networkName,bootstrapRequired:!users.some(x=>x.role==="super_admin"),protocolVersion:PROTOCOL_VERSION,minClientProtocol:MIN_CLIENT_PROTOCOL,capabilities:PROTOCOL_CAPABILITIES,encryption:"client-side",realtime:"sse-fetch-stream",deliveryQueue:"persistent-retry",database:store.mode,clusterReady:true,time:new Date().toISOString()});return true;}
+  if(pathname==="/api/push/public-key"&&req.method==="GET"){const auth=requireAuth(req,res);if(!auth)return true;const network=readObject(NETWORK_FILE,{});sendJson(res,200,{ok:true,publicKey:network.webPushVapid?.publicKey||""});return true;}
+  if(pathname==="/api/push/subscribe"&&req.method==="POST"){const auth=requireAuth(req,res);if(!auth)return true;const body=await readBody(req);const subscription=body.subscription;if(!subscription?.endpoint||!subscription?.keys?.p256dh||!subscription?.keys?.auth)return sendJson(res,400,{ok:false,error:"Некорректная push-подписка"}),true;const list=readJson(PUSH_SUBSCRIPTIONS_FILE);const now=new Date().toISOString();let item=list.find(x=>x.subscription?.endpoint===subscription.endpoint);if(item){item.userId=auth.user.id;item.deviceId=auth.device.id;item.subscription=subscription;item.updatedAt=now;}else{item={id:crypto.randomUUID(),userId:auth.user.id,deviceId:auth.device.id,subscription,createdAt:now,updatedAt:now};list.push(item);}writeJson(PUSH_SUBSCRIPTIONS_FILE,list);sendJson(res,200,{ok:true});return true;}
+  if(pathname==="/api/push/subscribe"&&req.method==="DELETE"){const auth=requireAuth(req,res);if(!auth)return true;const body=await readBody(req);const endpoint=String(body.endpoint||"");const list=readJson(PUSH_SUBSCRIPTIONS_FILE);writeJson(PUSH_SUBSCRIPTIONS_FILE,list.filter(x=>!(x.userId===auth.user.id&&x.subscription?.endpoint===endpoint)));sendJson(res,200,{ok:true});return true;}
+
   if(pathname==="/api/protocol"&&req.method==="GET"){sendJson(res,200,{ok:true,protocol:{name:"Fibro Protocol",version:PROTOCOL_VERSION,minClientProtocol:MIN_CLIENT_PROTOCOL,serverVersion:APP_VERSION,transport:["HTTP/JSON","SSE"],capabilities:PROTOCOL_CAPABILITIES,errorFormat:{code:"STRING",error:"Human readable text",traceId:"UUID in _protocol"},eventEnvelope:{protocol:"STRING",type:"STRING",traceId:"UUID",timestamp:"ISO-8601",payload:"OBJECT"}}});return true;}
   if(pathname==="/api/network/public"&&req.method==="GET"){const network=readObject(NETWORK_FILE,{});sendJson(res,200,{ok:true,network:publicNetwork(network,req)});return true;}
   if(pathname==="/api/network/profile"&&req.method==="GET"){sendDownloadJson(res,`${readObject(NETWORK_FILE,{}).networkId||"fibrochat"}.fibronet.json`,createNetworkProfile(req));return true;}
@@ -292,7 +318,7 @@ async function handleApi(req,res,pathname,searchParams){
   const supportCloseMatch=pathname.match(/^\/api\/support\/([0-9a-f-]+)\/close$/i);if(supportCloseMatch&&req.method==="POST"){const auth=requireAdmin(req,res);if(!auth)return true;const list=readJson(SUPPORT_FILE);const ticket=list.find(t=>t.id===supportCloseMatch[1]);if(!ticket)return sendJson(res,404,{ok:false,error:"Обращение не найдено"}),true;ticket.status="closed";ticket.updatedAt=new Date().toISOString();writeJson(SUPPORT_FILE,list);notify(ticket.userId,"SUPPORT_CLOSED","Обращение закрыто",`Обращение «${ticket.subject}» закрыто.`,{ticketId:ticket.id});audit("SUPPORT_CLOSED",auth.user.id,ticket.userId,{ticketId:ticket.id});sendJson(res,200,{ok:true});return true;}
   if(pathname==="/api/contacts"&&req.method==="GET"){const auth=requireActive(req,res);if(!auth)return true;const messages=readJson(MESSAGES_FILE);const contacts=readJson(USERS_FILE).filter(u=>u.id!==auth.user.id&&u.status==="active"&&u.encryptionPublicKey&&u.signingPublicKey).map(u=>{const related=messages.filter(m=>(m.senderId===auth.user.id&&m.recipientId===u.id)||(m.senderId===u.id&&m.recipientId===auth.user.id));const last=related.reduce((latest,m)=>!latest||new Date(m.createdAt)>new Date(latest.createdAt)?m:latest,null);const unreadCount=related.filter(m=>m.senderId===u.id&&m.recipientId===auth.user.id&&!m.readAt).length;return {...publicUser(u),online:isOnline(u.id),unreadCount,lastMessageAt:last?.createdAt||null};}).sort((a,b)=>{if(a.unreadCount!==b.unreadCount)return b.unreadCount-a.unreadCount;if(a.lastMessageAt&&b.lastMessageAt)return new Date(b.lastMessageAt)-new Date(a.lastMessageAt);if(a.lastMessageAt)return -1;if(b.lastMessageAt)return 1;return a.nickname.localeCompare(b.nickname,"ru");});sendJson(res,200,{ok:true,contacts});return true;}
   if(pathname==="/api/messages"&&req.method==="GET"){const auth=requireActive(req,res);if(!auth)return true;const withUserId=String(searchParams.get("with")||"");if(!withUserId)return sendJson(res,400,{ok:false,error:"Не выбран собеседник"}),true;const messages=readJson(MESSAGES_FILE);let changed=false;const now=new Date().toISOString();for(const m of messages){if(m.recipientId===auth.user.id&&m.senderId===withUserId&&!m.deliveredAt){m.deliveredAt=now;m.nextAttemptAt=null;changed=true;sendEvent(m.senderId,"message:status",{messageId:m.id,deliveredAt:m.deliveredAt,deliveryAttempts:Number(m.deliveryAttempts)||0});}}if(changed)writeJson(MESSAGES_FILE,messages);const conversation=messages.filter(m=>(m.senderId===auth.user.id&&m.recipientId===withUserId)||(m.senderId===withUserId&&m.recipientId===auth.user.id)).map(publicMessage);sendJson(res,200,{ok:true,messages:conversation});return true;}
-  if(pathname==="/api/messages"&&req.method==="POST"){const auth=requireActive(req,res);if(!auth)return true;const body=await readBody(req);const recipientId=String(body.recipientId||"");const recipient=readJson(USERS_FILE).find(u=>u.id===recipientId&&u.status==="active"&&u.encryptionPublicKey&&u.signingPublicKey);if(!recipient)return sendJson(res,404,{ok:false,error:"Получатель недоступен или не настроил ключи"}),true;if(!validEnvelope(body.envelope,auth.user.id,recipientId)||typeof body.signature!=="string")return sendJson(res,400,{ok:false,error:"Некорректный зашифрованный пакет"}),true;const verified=await verifyEnvelopeSignature(body.envelope,body.signature,auth.user.signingPublicKey);if(!verified)return sendJson(res,400,{ok:false,error:"Цифровая подпись сообщения не прошла проверку"}),true;const messages=readJson(MESSAGES_FILE);if(messages.some(m=>m.id===body.envelope.messageId))return sendJson(res,409,{ok:false,error:"Дубликат сообщения"}),true;const now=new Date();const message={id:body.envelope.messageId,senderId:auth.user.id,recipientId,envelope:body.envelope,signature:body.signature,createdAt:body.envelope.createdAt,deliveredAt:null,readAt:null,deliveryAttempts:1,lastAttemptAt:now.toISOString(),nextAttemptAt:new Date(now.getTime()+deliveryDelay(1)).toISOString()};messages.push(message);writeJson(MESSAGES_FILE,messages);sendEvent(recipientId,"message:new",{messageId:message.id,senderId:auth.user.id,retry:false,attempt:1});sendEvent(auth.user.id,"message:status",{messageId:message.id,deliveryAttempts:1,lastAttemptAt:message.lastAttemptAt,nextAttemptAt:message.nextAttemptAt});sendJson(res,201,{ok:true,message:publicMessage(message)});return true;}
+  if(pathname==="/api/messages"&&req.method==="POST"){const auth=requireActive(req,res);if(!auth)return true;const body=await readBody(req);const recipientId=String(body.recipientId||"");const recipient=readJson(USERS_FILE).find(u=>u.id===recipientId&&u.status==="active"&&u.encryptionPublicKey&&u.signingPublicKey);if(!recipient)return sendJson(res,404,{ok:false,error:"Получатель недоступен или не настроил ключи"}),true;if(!validEnvelope(body.envelope,auth.user.id,recipientId)||typeof body.signature!=="string")return sendJson(res,400,{ok:false,error:"Некорректный зашифрованный пакет"}),true;const verified=await verifyEnvelopeSignature(body.envelope,body.signature,auth.user.signingPublicKey);if(!verified)return sendJson(res,400,{ok:false,error:"Цифровая подпись сообщения не прошла проверку"}),true;const messages=readJson(MESSAGES_FILE);if(messages.some(m=>m.id===body.envelope.messageId))return sendJson(res,409,{ok:false,error:"Дубликат сообщения"}),true;const now=new Date();const message={id:body.envelope.messageId,senderId:auth.user.id,recipientId,envelope:body.envelope,signature:body.signature,createdAt:body.envelope.createdAt,deliveredAt:null,readAt:null,deliveryAttempts:1,lastAttemptAt:now.toISOString(),nextAttemptAt:new Date(now.getTime()+deliveryDelay(1)).toISOString()};messages.push(message);writeJson(MESSAGES_FILE,messages);sendEvent(recipientId,"message:new",{messageId:message.id,senderId:auth.user.id,retry:false,attempt:1});void sendWebPush(recipientId,{title:`Сообщение от ${auth.user.nickname}`,body:"Новое защищённое сообщение",tag:`message-${message.id}`,url:"/"});sendEvent(auth.user.id,"message:status",{messageId:message.id,deliveryAttempts:1,lastAttemptAt:message.lastAttemptAt,nextAttemptAt:message.nextAttemptAt});sendJson(res,201,{ok:true,message:publicMessage(message)});return true;}
   const readMatch=pathname.match(/^\/api\/messages\/([0-9a-f-]+)\/read$/i);if(readMatch&&req.method==="POST"){const auth=requireActive(req,res);if(!auth)return true;const messages=readJson(MESSAGES_FILE);const m=messages.find(x=>x.id===readMatch[1]&&x.recipientId===auth.user.id);if(!m)return sendJson(res,404,{ok:false,error:"Сообщение не найдено"}),true;m.deliveredAt||=new Date().toISOString();m.readAt||=new Date().toISOString();writeJson(MESSAGES_FILE,messages);sendEvent(m.senderId,"message:read",{messageId:m.id,readAt:m.readAt,recipientId:auth.user.id});sendEvent(auth.user.id,"message:status",{messageId:m.id,readAt:m.readAt});sendJson(res,200,{ok:true});return true;}
   if(pathname==="/api/admin/network/settings"&&req.method==="POST"){const auth=requireHead(req,res);if(!auth)return true;const body=await readBody(req);const network=readObject(NETWORK_FILE,{});const old={networkName:network.networkName,publicBaseUrl:network.publicBaseUrl||""};network.networkName=cleanNetworkName(body.networkName);const requestedUrl=String(body.publicBaseUrl||"").trim();const normalized=normalizeBaseUrl(requestedUrl);if(requestedUrl&&!normalized)return sendJson(res,400,{ok:false,error:"Некорректный публичный адрес сети"}),true;network.publicBaseUrl=normalized;writeObject(NETWORK_FILE,network);audit("NETWORK_SETTINGS_UPDATED",auth.user.id,network.networkId,{old,new:{networkName:network.networkName,publicBaseUrl:network.publicBaseUrl}});sendJson(res,200,{ok:true,network:{...publicNetwork(network,req),isHead:true}});return true;}
   if(pathname==="/api/admin/network/profile"&&req.method==="GET"){const auth=requireHead(req,res);if(!auth)return true;const profile=createNetworkProfile(req);audit("NETWORK_PROFILE_EXPORTED",auth.user.id,profile.network.networkId,{baseUrl:profile.network.baseUrl});sendDownloadJson(res,`${profile.network.networkId}.fibronet.json`,profile);return true;}

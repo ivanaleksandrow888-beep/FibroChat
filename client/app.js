@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.4.0";
+const CLIENT_VERSION = "0.4.3";
 const CLIENT_PROTOCOL = "1.1";
 
 const state = {
@@ -18,7 +18,9 @@ const state = {
   supportTickets: [],
   devices: [],
   currentDevice: null,
-  bootstrapRequired: false
+  bootstrapRequired: false,
+  pinUnlocked: false,
+  pendingRestoreUser: null
 };
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -40,6 +42,131 @@ const el = {
 };
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+
+
+const PIN_VAULT_PREFIX = "fibrochat_pin_vault_";
+const PIN_PBKDF2_ITERATIONS = 310000;
+
+function pinVaultKey(userId){return `${PIN_VAULT_PREFIX}${userId}`;}
+function validPin(pin){return /^\d{6}$/.test(String(pin||""));}
+function hasPinVault(userId){return Boolean(userId&&localStorage.getItem(pinVaultKey(userId)));}
+
+async function derivePinKey(pin,salt){
+  const material=await crypto.subtle.importKey("raw",encoder.encode(pin),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2",hash:"SHA-256",salt,iterations:PIN_PBKDF2_ITERATIONS},material,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+}
+async function savePinVault(userId,pin,bundle){
+  if(!validPin(pin))throw new Error("PIN должен состоять ровно из 6 цифр");
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await derivePinKey(pin,salt);
+  const ciphertext=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,encoder.encode(JSON.stringify(bundle)));
+  localStorage.setItem(pinVaultKey(userId),JSON.stringify({version:1,salt:bytesToBase64(salt),iv:bytesToBase64(iv),ciphertext:bytesToBase64(ciphertext),createdAt:new Date().toISOString()}));
+}
+async function loadPinVault(userId,pin){
+  if(!validPin(pin))throw new Error("Введите 6 цифр");
+  const raw=localStorage.getItem(pinVaultKey(userId));
+  if(!raw)throw new Error("PIN на этом устройстве не настроен");
+  try{
+    const stored=JSON.parse(raw);
+    const key=await derivePinKey(pin,base64ToBytes(stored.salt));
+    const clear=await crypto.subtle.decrypt({name:"AES-GCM",iv:base64ToBytes(stored.iv)},key,base64ToBytes(stored.ciphertext));
+    return JSON.parse(decoder.decode(clear));
+  }catch{throw new Error("Неверный PIN");}
+}
+
+function ensureLocalSecurityUi(){
+  if(document.getElementById("fibro-pin-modal"))return;
+  const style=document.createElement("style");
+  style.textContent=`
+    .fibro-pin-modal{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(3,8,22,.88);backdrop-filter:blur(12px);padding:20px}
+    .fibro-pin-modal.hidden{display:none}.fibro-pin-card{width:min(420px,100%);background:#10182c;border:1px solid #304067;border-radius:24px;padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.45);color:#fff}
+    .fibro-pin-card h2{margin:0 0 8px}.fibro-pin-card p{color:#aab5d2;line-height:1.45}.fibro-pin-input{width:100%;box-sizing:border-box;font-size:28px;letter-spacing:12px;text-align:center;padding:14px;border-radius:14px;border:1px solid #40517d;background:#080f21;color:#fff;margin:12px 0}
+    .fibro-pin-actions{display:flex;gap:10px;flex-wrap:wrap}.fibro-pin-actions button{flex:1;min-width:120px;padding:12px;border-radius:12px;border:0;font-weight:700;cursor:pointer}.fibro-pin-primary{background:linear-gradient(90deg,#715cff,#26bde8);color:#fff}.fibro-pin-secondary{background:#28385f;color:#fff}.fibro-pin-message{min-height:22px;color:#ffaaaa;margin-top:10px}
+    .fibro-security-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.fibro-security-tools button{padding:9px 12px;border-radius:10px;border:1px solid #40517d;background:#202e50;color:#fff;cursor:pointer}
+  `;
+  document.head.appendChild(style);
+  const modal=document.createElement("div");
+  modal.id="fibro-pin-modal";modal.className="fibro-pin-modal hidden";
+  modal.innerHTML=`<div class="fibro-pin-card"><h2 id="fibro-pin-title">Код быстрого доступа</h2><p id="fibro-pin-description"></p><input id="fibro-pin-input" class="fibro-pin-input" type="password" inputmode="numeric" maxlength="6" autocomplete="one-time-code" pattern="[0-9]*" placeholder="••••••"><div class="fibro-pin-actions"><button id="fibro-pin-confirm" class="fibro-pin-primary" type="button">Продолжить</button><button id="fibro-pin-cancel" class="fibro-pin-secondary" type="button">Позже</button></div><div id="fibro-pin-message" class="fibro-pin-message"></div></div>`;
+  document.body.appendChild(modal);
+}
+function openPinModal({mode="unlock",canCancel=false,onSuccess}={}){
+  ensureLocalSecurityUi();
+  const modal=document.getElementById("fibro-pin-modal");
+  const title=document.getElementById("fibro-pin-title");
+  const description=document.getElementById("fibro-pin-description");
+  const input=document.getElementById("fibro-pin-input");
+  const confirmButton=document.getElementById("fibro-pin-confirm");
+  const cancelButton=document.getElementById("fibro-pin-cancel");
+  const message=document.getElementById("fibro-pin-message");
+  title.textContent=mode==="setup"?"Установите 6-значный PIN":"Введите PIN";
+  description.textContent=mode==="setup"?"Этот код будет разблокировать FibroChat на данном устройстве после обновления страницы. Он не заменяет пароль аккаунта.":"Сессия сохранена. Введите локальный 6-значный код, чтобы открыть ключи и продолжить.";
+  confirmButton.textContent=mode==="setup"?"Установить PIN":"Разблокировать";
+  cancelButton.textContent=mode==="setup"?"Позже":"Войти паролем";
+  cancelButton.classList.toggle("hidden",!canCancel);
+  input.value="";message.textContent="";modal.classList.remove("hidden");setTimeout(()=>input.focus(),50);
+  const close=()=>{modal.classList.add("hidden");confirmButton.onclick=null;cancelButton.onclick=null;input.onkeydown=null;};
+  const submit=async()=>{
+    try{
+      const pin=input.value.trim();if(!validPin(pin))throw new Error("Введите ровно 6 цифр");
+      confirmButton.disabled=true;
+      let result;
+      if(mode==="setup"){if(!state.user||!state.identity)throw new Error("Сначала войдите в аккаунт");const bundle={encryptionPublicKey:state.identity.encryptionPublicKey,signingPublicKey:state.identity.signingPublicKey,encryptionPrivateKey:await crypto.subtle.exportKey("jwk",state.identity.encryptionPrivate),signingPrivateKey:await crypto.subtle.exportKey("jwk",state.identity.signingPrivate)};await savePinVault(state.user.id,pin,bundle);result=bundle;}
+      else result=await loadPinVault(state.pendingRestoreUser?.id||state.user?.id,pin);
+      close();await onSuccess?.(result);
+    }catch(error){message.textContent=error.message;}finally{confirmButton.disabled=false;}
+  };
+  confirmButton.onclick=submit;input.onkeydown=e=>{if(e.key==="Enter")submit();};cancelButton.onclick=()=>{close();if(mode==="unlock"){state.pendingRestoreUser=null;showAuth(false);setMode("login");setAuthMessage("Сессия сохранена. Введите пароль аккаунта, чтобы открыть ключи.");}};
+}
+
+async function requestBrowserNotifications(){
+  if(!("Notification" in window))return "unsupported";
+  if(Notification.permission==="granted")return "granted";
+  if(Notification.permission==="denied")return "denied";
+  try{return await Notification.requestPermission();}catch{return "unsupported";}
+}
+function base64UrlToUint8Array(value){const padding="=".repeat((4-value.length%4)%4);const base64=(value+padding).replace(/-/g,"+").replace(/_/g,"/");const raw=atob(base64);return Uint8Array.from([...raw].map(ch=>ch.charCodeAt(0)));}
+async function registerFibroServiceWorker(){if(!("serviceWorker" in navigator))return null;try{return await navigator.serviceWorker.register("/sw.js",{scope:"/"});}catch(error){console.warn("Service worker registration failed",error);return null;}}
+async function enableWebPush(){
+  if(!window.isSecureContext)throw new Error("Push-уведомления требуют HTTPS");
+  if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window))throw new Error("Этот браузер не поддерживает Web Push");
+  const permission=await requestBrowserNotifications();
+  if(permission!=="granted")throw new Error(permission==="denied"?"Уведомления запрещены в настройках браузера":"Разрешение на уведомления не выдано");
+  const registration=await registerFibroServiceWorker();if(!registration)throw new Error("Не удалось запустить Service Worker");
+  const keyData=await api("/api/push/public-key",{method:"GET"});if(!keyData.publicKey)throw new Error("Серверный ключ Web Push не настроен");
+  let subscription=await registration.pushManager.getSubscription();
+  if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:base64UrlToUint8Array(keyData.publicKey)});
+  await api("/api/push/subscribe",{method:"POST",body:JSON.stringify({subscription:subscription.toJSON()})});
+  return "granted";
+}
+function isIos(){return /iphone|ipad|ipod/i.test(navigator.userAgent);}
+function isStandalonePwa(){return window.matchMedia?.("(display-mode: standalone)").matches||navigator.standalone===true;}
+function offerPushSetup(){
+  if(!state.user||("Notification" in window&&Notification.permission==="granted")||localStorage.getItem("fibrochat_push_offer_dismissed")==="1")return;
+  if(document.getElementById("fibro-push-offer"))return;
+  const box=document.createElement("div");box.id="fibro-push-offer";box.style.cssText="position:fixed;left:16px;right:16px;bottom:16px;z-index:99998;max-width:520px;margin:auto;padding:16px;border:1px solid #40517d;border-radius:16px;background:#10182c;color:white;box-shadow:0 20px 60px rgba(0,0,0,.45)";
+  const iosNote=isIos()&&!isStandalonePwa()?" На iPhone/iPad сначала добавьте FibroChat на экран Домой, затем откройте его с иконки.":"";
+  box.innerHTML=`<strong>Включить уведомления?</strong><p style="color:#aab5d2">FibroChat сможет сообщать о новых сообщениях, даже когда вкладка закрыта.${iosNote}</p><div style="display:flex;gap:8px"><button id="fibro-push-yes" style="flex:1;padding:10px;border:0;border-radius:10px;background:#5267ff;color:#fff;font-weight:700">Включить</button><button id="fibro-push-no" style="padding:10px;border:0;border-radius:10px;background:#28385f;color:#fff">Позже</button></div>`;document.body.appendChild(box);
+  box.querySelector("#fibro-push-yes").onclick=async()=>{try{await enableWebPush();box.remove();alert("Push-уведомления включены.");}catch(error){alert(error.message);}};
+  box.querySelector("#fibro-push-no").onclick=()=>{localStorage.setItem("fibrochat_push_offer_dismissed","1");box.remove();};
+}
+function showBrowserNotification(title,options={}){
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  try{const n=new Notification(title,{icon:"/icons/icon-192.png",badge:"/icons/icon-192.png",tag:options.tag||undefined,renotify:Boolean(options.tag),body:options.body||"",silent:false});n.onclick=()=>{window.focus();n.close();};}catch{}
+}
+function installSecurityControls(){
+  ensureLocalSecurityUi();
+  if(document.getElementById("fibro-security-tools"))return;
+  const host=el.logoutAll?.parentElement||el.currentRole?.parentElement||el.appView;
+  if(!host)return;
+  const box=document.createElement("div");box.id="fibro-security-tools";box.className="fibro-security-tools";
+  box.innerHTML=`<button id="fibro-enable-notifications" type="button">Включить уведомления</button><button id="fibro-set-pin" type="button">Установить/сменить PIN</button><button id="fibro-lock-now" type="button">Заблокировать</button>`;
+  host.appendChild(box);
+  box.querySelector("#fibro-enable-notifications").onclick=async()=>{try{await enableWebPush();alert("Push-уведомления включены.");}catch(error){alert(error.message);}};
+  box.querySelector("#fibro-set-pin").onclick=()=>openPinModal({mode:"setup",canCancel:true,onSuccess:()=>alert("PIN сохранён на этом устройстве.")});
+  box.querySelector("#fibro-lock-now").onclick=()=>{state.pendingRestoreUser=state.user;state.identity=null;el.appView.classList.add("hidden");openPinModal({mode:"unlock",canCancel:true,onSuccess:async bundle=>{state.identity=await importIdentity(bundle);state.pinUnlocked=true;showApp(state.pendingRestoreUser);state.pendingRestoreUser=null;}});};
+}
 
 function saveSession(data){state.token=data.token||"";state.refreshToken=data.refreshToken||state.refreshToken||"";if(state.token)localStorage.setItem("fibrochat_token",state.token);else localStorage.removeItem("fibrochat_token");if(state.refreshToken)localStorage.setItem("fibrochat_refresh_token",state.refreshToken);else localStorage.removeItem("fibrochat_refresh_token");}
 function clearSession(){state.token="";state.refreshToken="";localStorage.removeItem("fibrochat_token");localStorage.removeItem("fibrochat_refresh_token");}
@@ -89,11 +216,12 @@ async function handleRealtimeEvent(type,payload){
   if(payload&&payload.protocol&&payload.payload!==undefined){type=payload.type||type;payload=payload.payload;}
   if(type==="connected"){state.realtimeConnected=true;el.nodeText.textContent=`Головной узел онлайн · v${CLIENT_VERSION} · протокол ${CLIENT_PROTOCOL} · связь в реальном времени`;return;}
   if(["message:new","message:status","message:read"].includes(type)){
+    if(type==="message:new")showBrowserNotification("Новое сообщение в FibroChat",{body:"Получено новое зашифрованное сообщение.",tag:`message-${payload?.messageId||Date.now()}`});
     await loadContacts(false).catch(()=>null);
     if(state.activeContact)await loadMessages(false).catch(()=>null);
     return;
   }
-  if(type==="notification")await loadNotifications(false).catch(()=>null);
+  if(type==="notification"){showBrowserNotification(payload?.title||"FibroChat",{body:payload?.text||"Новое уведомление",tag:`notification-${payload?.id||Date.now()}`});await loadNotifications(false).catch(()=>null);}
   if(type==="support:update")await loadSupport().catch(()=>null);
   if(type==="device:update")await loadDevices().catch(()=>null);
 }
@@ -350,7 +478,7 @@ function showApp(user) {
   el.currentRole.textContent = roleName(user.role);
   const isAdmin = ["admin", "super_admin"].includes(user.role); el.adminPanel.classList.toggle("hidden", !isAdmin);
   if (user.status === "active" && user.subscriptionState !== "expired") loadContacts(); else el.contactsList.innerHTML = `<p class="muted">${user.subscriptionState === "expired" ? "Подписка истекла. Переписка временно недоступна, но поддержка работает." : "Аккаунт ожидает подтверждения администратора."}</p>`;
-  loadNotifications(); loadSupport(); loadDevices();
+  loadNotifications(); loadSupport(); loadDevices(); installSecurityControls(); setTimeout(offerPushSetup,700); if(("Notification" in window&&Notification.permission==="granted"))enableWebPush().catch(()=>null);
   if (isAdmin) loadAdmin(); clearInterval(state.pollingTimer);
   connectRealtime();
   state.pollingTimer = setInterval(async () => { try { await api("/api/presence", { method: "POST" }); if (!state.realtimeConnected && state.user?.status === "active" && state.user?.subscriptionState !== "expired") { await loadContacts(false); if (state.activeContact) await loadMessages(false); } await loadNotifications(false); } catch {} }, 15000);
@@ -359,10 +487,15 @@ async function restoreSession() {
   if (!state.token) return;
   try {
     const data = await api("/api/me", { method: "GET" });
-    showAuth(false);
-    setMode("login");
-    setAuthMessage("Сессия найдена. Для расшифровки введите пароль ещё раз.");
-    el.nickname.value = data.user.nickname;
+    state.pendingRestoreUser=data.user;
+    state.currentDevice=data.device||null;
+    el.nickname.value=data.user.nickname;
+    if(hasPinVault(data.user.id)){
+      el.authView.classList.add("hidden");
+      openPinModal({mode:"unlock",canCancel:true,onSuccess:async bundle=>{if(!sameJwk(bundle.encryptionPublicKey,data.user.encryptionPublicKey)||!sameJwk(bundle.signingPublicKey,data.user.signingPublicKey))throw new Error("PIN-хранилище не соответствует аккаунту");state.identity=await importIdentity(bundle);state.pinUnlocked=true;showApp(data.user);state.pendingRestoreUser=null;await requestBrowserNotifications();}});
+      return;
+    }
+    showAuth(false);setMode("login");setAuthMessage("Сессия сохранена. Введите пароль аккаунта один раз или установите 6-значный PIN для быстрого входа после обновления.");
   } catch { showAuth(); }
 }
 async function handleAuth(event) {
@@ -397,6 +530,8 @@ async function handleAuth(event) {
     localStorage.removeItem("fibrochat_imported_vault_user");
     state.identity = await importIdentity(bundle);
     state.currentDevice = data.device || null; state.bootstrapRequired=false; setAuthMessage("Ключи загружены. Готово.", "success"); showApp(data.user);
+    await requestBrowserNotifications();
+    if(!hasPinVault(data.user.id))setTimeout(()=>openPinModal({mode:"setup",canCancel:true,onSuccess:()=>{}}),350);
   } catch (error) { setAuthMessage(error.message); }
 }
 async function loadContacts(render = true) { try { const data = await api("/api/contacts", { method: "GET" }); state.contacts = data.contacts; if (state.activeContact) { state.activeContact = state.contacts.find((c) => c.id === state.activeContact.id) || null; if (state.activeContact) updateChatHeader(); } if (!render) return renderContacts(); renderContacts(); } catch (error) { el.contactsList.innerHTML = `<p class="message">${escapeHtml(error.message)}</p>`; } }
@@ -529,7 +664,7 @@ el.changePassword.addEventListener("click",async()=>{
   if(newPassword.length<10){el.passwordMessage.textContent="Новый пароль должен содержать минимум 10 символов.";return;}
   if(newPassword!==confirmPassword){el.passwordMessage.textContent="Новые пароли не совпадают.";return;}
   el.changePassword.disabled=true;el.passwordMessage.textContent="Изменение пароля…";
-  try{await api("/api/account/password",{method:"POST",body:JSON.stringify({currentPassword,newPassword})});el.currentPassword.value="";el.newPassword.value="";el.newPasswordConfirm.value="";el.passwordMessage.textContent="Пароль изменён. Остальные сессии завершены.";el.passwordMessage.className="message success";}catch(error){el.passwordMessage.textContent=error.message;}finally{el.changePassword.disabled=false;}
+  try{let bundle=null;try{bundle=await loadIdentity(state.user.id,currentPassword);}catch{}await api("/api/account/password",{method:"POST",body:JSON.stringify({currentPassword,newPassword})});if(bundle)await saveIdentity(state.user.id,newPassword,bundle);el.currentPassword.value="";el.newPassword.value="";el.newPasswordConfirm.value="";el.passwordMessage.textContent="Пароль изменён. Локальные ключи обновлены, остальные сессии завершены.";el.passwordMessage.className="message success";}catch(error){el.passwordMessage.textContent=error.message;}finally{el.changePassword.disabled=false;}
 });
 
 el.refreshDevices.addEventListener("click",()=>loadDevices());
@@ -565,4 +700,5 @@ el.usersList.addEventListener("click", async (event) => {
 
 el.deviceName.value = localStorage.getItem("fibrochat_device_name") || guessedDeviceName();
 el.deviceName.addEventListener("change",()=>localStorage.setItem("fibrochat_device_name",el.deviceName.value.trim()));
+registerFibroServiceWorker();
 setMode("register"); updateComposer(); checkHealth(); restoreSession();

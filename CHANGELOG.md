@@ -11,3 +11,9 @@
 - Added cluster node registry and multi-node cache refresh groundwork.
 - Replaced the monolithic entry point with a small launcher plus configuration and storage modules.
 - Removed production JSON data from version control.
+
+## v0.4.4
+- Fixed 6-digit PIN setup: no longer attempts to export non-extractable CryptoKey objects.
+- Keeps the decrypted identity bundle in sessionStorage so a normal page refresh no longer logs the user out.
+- PIN vault now stores the original JWK identity bundle and restores it after browser restart.
+- Updated package-lock.json and verified `npm ci` plus syntax checks.

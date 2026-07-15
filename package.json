@@ -1,6 +1,6 @@
 {
   "name": "fibrochat",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "private": true,
   "description": "FibroChat PostgreSQL Core with PWA and Web Push",
   "scripts": {

@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.4.3";
+const CLIENT_VERSION = "0.4.4";
 const CLIENT_PROTOCOL = "1.1";
 
 const state = {
@@ -20,7 +20,8 @@ const state = {
   currentDevice: null,
   bootstrapRequired: false,
   pinUnlocked: false,
-  pendingRestoreUser: null
+  pendingRestoreUser: null,
+  identityBundle: null
 };
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -45,9 +46,22 @@ const decoder = new TextDecoder();
 
 
 const PIN_VAULT_PREFIX = "fibrochat_pin_vault_";
+const SESSION_IDENTITY_PREFIX = "fibrochat_session_identity_";
 const PIN_PBKDF2_ITERATIONS = 310000;
 
 function pinVaultKey(userId){return `${PIN_VAULT_PREFIX}${userId}`;}
+function sessionIdentityKey(userId){return `${SESSION_IDENTITY_PREFIX}${userId}`;}
+function saveSessionIdentity(userId,bundle){
+  if(!userId||!bundle)return;
+  sessionStorage.setItem(sessionIdentityKey(userId),JSON.stringify(bundle));
+}
+function loadSessionIdentity(userId){
+  if(!userId)return null;
+  try{return JSON.parse(sessionStorage.getItem(sessionIdentityKey(userId))||"null");}catch{return null;}
+}
+function clearSessionIdentity(userId){
+  if(userId)sessionStorage.removeItem(sessionIdentityKey(userId));
+}
 function validPin(pin){return /^\d{6}$/.test(String(pin||""));}
 function hasPinVault(userId){return Boolean(userId&&localStorage.getItem(pinVaultKey(userId)));}
 
@@ -112,7 +126,12 @@ function openPinModal({mode="unlock",canCancel=false,onSuccess}={}){
       const pin=input.value.trim();if(!validPin(pin))throw new Error("Введите ровно 6 цифр");
       confirmButton.disabled=true;
       let result;
-      if(mode==="setup"){if(!state.user||!state.identity)throw new Error("Сначала войдите в аккаунт");const bundle={encryptionPublicKey:state.identity.encryptionPublicKey,signingPublicKey:state.identity.signingPublicKey,encryptionPrivateKey:await crypto.subtle.exportKey("jwk",state.identity.encryptionPrivate),signingPrivateKey:await crypto.subtle.exportKey("jwk",state.identity.signingPrivate)};await savePinVault(state.user.id,pin,bundle);result=bundle;}
+      if(mode==="setup"){
+        if(!state.user||!state.identity)throw new Error("Сначала войдите в аккаунт");
+        const bundle=state.identityBundle||loadSessionIdentity(state.user.id);
+        if(!bundle)throw new Error("Ключи текущей сессии недоступны. Выйдите и войдите паролем ещё раз, затем установите PIN.");
+        await savePinVault(state.user.id,pin,bundle);result=bundle;
+      }
       else result=await loadPinVault(state.pendingRestoreUser?.id||state.user?.id,pin);
       close();await onSuccess?.(result);
     }catch(error){message.textContent=error.message;}finally{confirmButton.disabled=false;}
@@ -165,7 +184,7 @@ function installSecurityControls(){
   host.appendChild(box);
   box.querySelector("#fibro-enable-notifications").onclick=async()=>{try{await enableWebPush();alert("Push-уведомления включены.");}catch(error){alert(error.message);}};
   box.querySelector("#fibro-set-pin").onclick=()=>openPinModal({mode:"setup",canCancel:true,onSuccess:()=>alert("PIN сохранён на этом устройстве.")});
-  box.querySelector("#fibro-lock-now").onclick=()=>{state.pendingRestoreUser=state.user;state.identity=null;el.appView.classList.add("hidden");openPinModal({mode:"unlock",canCancel:true,onSuccess:async bundle=>{state.identity=await importIdentity(bundle);state.pinUnlocked=true;showApp(state.pendingRestoreUser);state.pendingRestoreUser=null;}});};
+  box.querySelector("#fibro-lock-now").onclick=()=>{state.pendingRestoreUser=state.user;state.identity=null;el.appView.classList.add("hidden");openPinModal({mode:"unlock",canCancel:true,onSuccess:async bundle=>{state.identityBundle=bundle;saveSessionIdentity(state.pendingRestoreUser.id,bundle);state.identity=await importIdentity(bundle);state.pinUnlocked=true;showApp(state.pendingRestoreUser);state.pendingRestoreUser=null;}});};
 }
 
 function saveSession(data){state.token=data.token||"";state.refreshToken=data.refreshToken||state.refreshToken||"";if(state.token)localStorage.setItem("fibrochat_token",state.token);else localStorage.removeItem("fibrochat_token");if(state.refreshToken)localStorage.setItem("fibrochat_refresh_token",state.refreshToken);else localStorage.removeItem("fibrochat_refresh_token");}
@@ -467,7 +486,7 @@ async function checkHealth() {
     el.nodeDot.classList.remove("online"); el.nodeText.textContent = "Головной узел недоступен";
   }
 }
-function showAuth(clearTokens = true) { clearInterval(state.pollingTimer); stopRealtime(); if(clearTokens)clearSession(); state.user = null; state.identity = null; state.activeContact = null; el.appView.classList.add("hidden"); el.authView.classList.remove("hidden"); }
+function showAuth(clearTokens = true) { clearInterval(state.pollingTimer); stopRealtime(); const previousUserId=state.user?.id||state.pendingRestoreUser?.id; if(clearTokens){clearSession();clearSessionIdentity(previousUserId);} state.user = null; state.identity = null; state.identityBundle = null; state.activeContact = null; el.appView.classList.add("hidden"); el.authView.classList.remove("hidden"); }
 function showApp(user) {
   state.user = user; el.authView.classList.add("hidden"); el.appView.classList.remove("hidden");
   el.profileNickname.textContent = user.nickname; el.profileStatus.textContent = `${statusName(user.status)} · ключи ${user.keysConfigured ? "настроены" : "не настроены"}`;
@@ -490,9 +509,17 @@ async function restoreSession() {
     state.pendingRestoreUser=data.user;
     state.currentDevice=data.device||null;
     el.nickname.value=data.user.nickname;
+    const sessionBundle=loadSessionIdentity(data.user.id);
+    if(sessionBundle&&sameJwk(sessionBundle.encryptionPublicKey,data.user.encryptionPublicKey)&&sameJwk(sessionBundle.signingPublicKey,data.user.signingPublicKey)){
+      state.identityBundle=sessionBundle;
+      state.identity=await importIdentity(sessionBundle);
+      showApp(data.user);
+      state.pendingRestoreUser=null;
+      return;
+    }
     if(hasPinVault(data.user.id)){
       el.authView.classList.add("hidden");
-      openPinModal({mode:"unlock",canCancel:true,onSuccess:async bundle=>{if(!sameJwk(bundle.encryptionPublicKey,data.user.encryptionPublicKey)||!sameJwk(bundle.signingPublicKey,data.user.signingPublicKey))throw new Error("PIN-хранилище не соответствует аккаунту");state.identity=await importIdentity(bundle);state.pinUnlocked=true;showApp(data.user);state.pendingRestoreUser=null;await requestBrowserNotifications();}});
+      openPinModal({mode:"unlock",canCancel:true,onSuccess:async bundle=>{if(!sameJwk(bundle.encryptionPublicKey,data.user.encryptionPublicKey)||!sameJwk(bundle.signingPublicKey,data.user.signingPublicKey))throw new Error("PIN-хранилище не соответствует аккаунту");state.identityBundle=bundle;saveSessionIdentity(data.user.id,bundle);state.identity=await importIdentity(bundle);state.pinUnlocked=true;showApp(data.user);state.pendingRestoreUser=null;await requestBrowserNotifications();}});
       return;
     }
     showAuth(false);setMode("login");setAuthMessage("Сессия сохранена. Введите пароль аккаунта один раз или установите 6-значный PIN для быстрого входа после обновления.");
@@ -528,6 +555,8 @@ async function handleAuth(event) {
     }
     if (generated || !localStorage.getItem(identityStorageKey(data.user.id))) await saveIdentity(data.user.id, password, bundle);
     localStorage.removeItem("fibrochat_imported_vault_user");
+    state.identityBundle = bundle;
+    saveSessionIdentity(data.user.id,bundle);
     state.identity = await importIdentity(bundle);
     state.currentDevice = data.device || null; state.bootstrapRequired=false; setAuthMessage("Ключи загружены. Готово.", "success"); showApp(data.user);
     await requestBrowserNotifications();

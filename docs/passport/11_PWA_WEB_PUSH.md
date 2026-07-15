@@ -1,6 +1,6 @@
 # PWA и Web Push
 
-FibroChat v0.4.3 регистрирует Service Worker, устанавливается как PWA и хранит Web Push подписки в PostgreSQL.
+FibroChat v0.4.4 регистрирует Service Worker, устанавливается как PWA и хранит Web Push подписки в PostgreSQL.
 
 ## Требования
 - Публичный HTTPS-адрес.

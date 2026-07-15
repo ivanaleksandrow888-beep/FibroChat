@@ -1,0 +1,15 @@
+.git
+.gitignore
+.github
+node_modules
+npm-debug.log*
+.env
+.env.*
+*.zip
+*.sha256
+coverage
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+FibroChat_backup*

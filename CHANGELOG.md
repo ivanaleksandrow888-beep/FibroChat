@@ -12,6 +12,13 @@
 - Replaced the monolithic entry point with a small launcher plus configuration and storage modules.
 - Removed production JSON data from version control.
 
+## v0.4.5
+
+- Added a production Dockerfile based on Node.js 20.
+- Added `.dockerignore`.
+- Replaced Nixpacks dependency installation with a deterministic Docker build.
+- Preserved PostgreSQL, PWA, Web Push, PIN, and session fixes from v0.4.4.
+
 ## v0.4.4
 - Fixed 6-digit PIN setup: no longer attempts to export non-extractable CryptoKey objects.
 - Keeps the decrypted identity bundle in sessionStorage so a normal page refresh no longer logs the user out.

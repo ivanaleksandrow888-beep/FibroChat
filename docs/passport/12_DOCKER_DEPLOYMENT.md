@@ -1,6 +1,6 @@
-# Docker deployment — v0.4.6
+# Docker deployment — v0.4.7
 
-FibroChat v0.4.6 is intended to be built by Coolify directly from the repository `Dockerfile`.
+FibroChat v0.4.7 is intended to be built by Coolify directly from the repository `Dockerfile`.
 
 ## Required Coolify settings
 

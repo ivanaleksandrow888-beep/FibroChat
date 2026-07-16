@@ -8,7 +8,8 @@ ENV NODE_ENV=production \
     NPM_CONFIG_FUND=false
 
 COPY package.json package-lock.json ./
-RUN npm install --omit=dev --no-audit --no-fund \
+RUN npm ci --omit=dev --no-audit --no-fund \
+    && node -e "require('pg'); require('web-push'); console.log('FibroChat runtime dependencies OK')" \
     && npm cache clean --force
 
 COPY --chown=node:node . .

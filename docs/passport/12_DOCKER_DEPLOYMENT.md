@@ -1,15 +1,18 @@
-# Docker deployment — v0.4.5
+# Docker deployment — v0.4.6
 
-FibroChat v0.4.5 deploys through the repository Dockerfile instead of Nixpacks.
+FibroChat v0.4.6 is intended to be built by Coolify directly from the repository `Dockerfile`.
 
-## Coolify settings
+## Required Coolify settings
 
-1. Open the FibroChat application.
-2. In Configuration → General set **Build Pack** to **Dockerfile**.
-3. Dockerfile location: `/Dockerfile`.
-4. Port: `3000`.
-5. Keep the existing `DATABASE_URL` environment variable unchanged.
-6. Remove the custom Install Command previously added for Nixpacks; Dockerfile handles dependencies.
-7. Save and run Redeploy.
+- Build Pack: `Dockerfile`
+- Dockerfile location: `/Dockerfile`
+- Base Directory: `/`
+- Port Exposes: `3000`
+- Install Command: empty
+- Build Command: empty
+- Start Command: empty
+- `DATABASE_URL`: keep the existing PostgreSQL internal URL
 
-PostgreSQL is a separate Coolify resource. Redeploying the application does not erase users, sessions, messages, invites, or push subscriptions.
+After changing the Build Pack, click **Save** and then **Redeploy**. A correct deployment log starts with loading the repository Dockerfile and must not contain `Generating nixpacks configuration`.
+
+The PostgreSQL resource and its persistent volume are separate from the application container. Rebuilding the FibroChat image does not delete users or messages.

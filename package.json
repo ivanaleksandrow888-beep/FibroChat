@@ -1,11 +1,11 @@
 {
   "name": "fibrochat",
-  "version": "0.4.7",
+  "version": "0.5.0",
   "private": true,
-  "description": "FibroChat PostgreSQL Core with PWA and Web Push",
+  "description": "FibroChat v0.5.0 Persistent Session and separated application interface",
   "scripts": {
     "start": "node server/server.js",
-    "check": "node --check server/server.js && node --check server/application.js && node --check server/storage/store.js && node --check client/app.js",
+    "check": "node --check server/server.js && node --check server/application.js && node --check server/storage/store.js && node --check client/ui-shell.js && node --check client/app.js && node --check client/sw.js",
     "restore-network": "node tools/restore-network-backup.js",
     "smoke": "node scripts/smoke-test.js"
   },

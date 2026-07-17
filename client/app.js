@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.4.7";
+const CLIENT_VERSION = "0.5.0";
 const CLIENT_PROTOCOL = "1.1";
 
 const state = {
@@ -180,10 +180,11 @@ function installSecurityControls(){
   const host=el.logoutAll?.parentElement||el.currentRole?.parentElement||el.appView;
   if(!host)return;
   const box=document.createElement("div");box.id="fibro-security-tools";box.className="fibro-security-tools";
-  box.innerHTML=`<button id="fibro-enable-notifications" type="button">Включить уведомления</button><button id="fibro-set-pin" type="button">Установить/сменить PIN</button><button id="fibro-lock-now" type="button">Заблокировать</button>`;
+  box.innerHTML=`<button id="fibro-enable-notifications" type="button">Включить уведомления</button><button id="fibro-set-pin" type="button">Установить/сменить PIN</button><button id="fibro-remove-pin" type="button">Отключить PIN</button><button id="fibro-lock-now" type="button">Заблокировать</button>`;
   host.appendChild(box);
   box.querySelector("#fibro-enable-notifications").onclick=async()=>{try{await enableWebPush();alert("Push-уведомления включены.");}catch(error){alert(error.message);}};
   box.querySelector("#fibro-set-pin").onclick=()=>openPinModal({mode:"setup",canCancel:true,onSuccess:()=>alert("PIN сохранён на этом устройстве.")});
+  box.querySelector("#fibro-remove-pin").onclick=()=>{if(!state.user||!hasPinVault(state.user.id)){alert("PIN на этом устройстве не настроен.");return;}if(confirm("Отключить быстрый вход по PIN на этом устройстве?")){localStorage.removeItem(pinVaultKey(state.user.id));alert("PIN отключён. Пароль аккаунта остаётся действующим.");}};
   box.querySelector("#fibro-lock-now").onclick=()=>{state.pendingRestoreUser=state.user;state.identity=null;el.appView.classList.add("hidden");openPinModal({mode:"unlock",canCancel:true,onSuccess:async bundle=>{state.identityBundle=bundle;saveSessionIdentity(state.pendingRestoreUser.id,bundle);state.identity=await importIdentity(bundle);state.pinUnlocked=true;showApp(state.pendingRestoreUser);state.pendingRestoreUser=null;}});};
 }
 
@@ -488,7 +489,7 @@ async function checkHealth() {
 }
 function showAuth(clearTokens = true) { clearInterval(state.pollingTimer); stopRealtime(); const previousUserId=state.user?.id||state.pendingRestoreUser?.id; if(clearTokens){clearSession();clearSessionIdentity(previousUserId);} state.user = null; state.identity = null; state.identityBundle = null; state.activeContact = null; el.appView.classList.add("hidden"); el.authView.classList.remove("hidden"); }
 function showApp(user) {
-  state.user = user; el.authView.classList.add("hidden"); el.appView.classList.remove("hidden");
+  state.user = user; localStorage.setItem("fibrochat_last_user_id",user.id); el.authView.classList.add("hidden"); el.appView.classList.remove("hidden");
   el.profileNickname.textContent = user.nickname; el.profileStatus.textContent = `${statusName(user.status)} · ключи ${user.keysConfigured ? "настроены" : "не настроены"}`;
   const days = Number(user.subscriptionDaysRemaining || 0);
   el.profileSubscription.textContent = user.subscriptionState === "expired" ? "Подписка истекла — чат заблокирован" : `Подписка до ${dateText(user.subscriptionEndsAt)} · осталось ${days} дн.`;
@@ -500,6 +501,7 @@ function showApp(user) {
   loadNotifications(); loadSupport(); loadDevices(); installSecurityControls(); setTimeout(offerPushSetup,700); if(("Notification" in window&&Notification.permission==="granted"))enableWebPush().catch(()=>null);
   if (isAdmin) loadAdmin(); clearInterval(state.pollingTimer);
   connectRealtime();
+  window.FibroRouter?.open(window.FibroRouter.current()||"chats",{writeHash:false});
   state.pollingTimer = setInterval(async () => { try { await api("/api/presence", { method: "POST" }); if (!state.realtimeConnected && state.user?.status === "active" && state.user?.subscriptionState !== "expired") { await loadContacts(false); if (state.activeContact) await loadMessages(false); } await loadNotifications(false); } catch {} }, 15000);
 }
 async function restoreSession() {
@@ -522,7 +524,7 @@ async function restoreSession() {
       openPinModal({mode:"unlock",canCancel:true,onSuccess:async bundle=>{if(!sameJwk(bundle.encryptionPublicKey,data.user.encryptionPublicKey)||!sameJwk(bundle.signingPublicKey,data.user.signingPublicKey))throw new Error("PIN-хранилище не соответствует аккаунту");state.identityBundle=bundle;saveSessionIdentity(data.user.id,bundle);state.identity=await importIdentity(bundle);state.pinUnlocked=true;showApp(data.user);state.pendingRestoreUser=null;await requestBrowserNotifications();}});
       return;
     }
-    showAuth(false);setMode("login");setAuthMessage("Сессия сохранена. Введите пароль аккаунта один раз или установите 6-значный PIN для быстрого входа после обновления.");
+    showAuth(false);setMode("login");setAuthMessage("Сессия на сервере сохранена. Введите пароль один раз, чтобы открыть локальные ключи, затем настройте шестизначный PIN.");
   } catch { showAuth(); }
 }
 async function handleAuth(event) {

@@ -1,7 +1,14 @@
-# START HERE
+# FibroChat — начать отсюда
 
-Current stable target: **FibroChat v0.4.0 PostgreSQL Core**.
+**Актуальная подготовленная версия:** 0.5.0.
 
-Read in order: `01_PROJECT_STATUS.md`, `02_ARCHITECTURE.md`, `03_SECURITY.md`, `04_ROLES_AND_FLOWS.md`, `05_DATABASE.md`, `06_DEPLOYMENT.md`, `07_ROADMAP.md`.
+FibroChat — защищённый веб-мессенджер на Node.js и PostgreSQL, развёрнутый в Docker через Coolify. Репозиторий GitHub является источником кода; пользовательские данные остаются в отдельном PostgreSQL.
 
-In a new chat: upload the full ZIP and ask the assistant to read this passport before changing code.
+## Как продолжить работу в новом чате
+1. Загрузить полный ZIP проекта.
+2. Попросить прочитать `docs/passport/00_START_HERE.md` и `18_AI_HANDOFF.md`.
+3. Считать файлы ZIP единственным актуальным исходником.
+4. Не предлагать ручное редактирование отдельных строк пользователю: готовить цельный ZIP-релиз.
+
+## Текущий фокус
+Версия 0.5.0 разделяет интерфейс и укрепляет сессии/PIN. Следующий этап — тестирование на Chrome, Android PWA, Safari/macOS и iOS PWA.

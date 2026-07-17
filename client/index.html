@@ -15,7 +15,7 @@
 <body>
   <main class="shell">
     <section id="auth-view" class="card auth-card">
-      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>PostgreSQL Core v0.4.7</p></div></div>
+      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>Persistent Session v0.5.0</p></div></div>
       <div class="node-line"><span id="node-dot" class="dot"></span><span id="node-text">Проверка головного узла…</span></div>
       <div class="tabs"><button id="register-tab" class="tab active" type="button">Регистрация</button><button id="login-tab" class="tab" type="button">Вход</button></div>
       <form id="auth-form">
@@ -130,7 +130,7 @@
       <section class="chat card">
         <div id="empty-chat" class="empty-chat"><div class="empty-icon">✦</div><h2>Первый контакт</h2><p>Выбери пользователя слева, чтобы открыть диалог.</p></div>
         <div id="chat-view" class="chat-view hidden">
-          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.2.0</span></header>
+          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.5.0</span></header>
           <div id="messages-list" class="messages-list"></div>
           <form id="message-form" class="composer"><textarea id="message-input" rows="1" maxlength="4000" placeholder="Написать сообщение…"></textarea><div class="composer-actions"><span id="char-counter" class="char-counter">0/4000</span><button id="send-button" class="send-button" type="submit" disabled>Отправить</button></div></form>
           <p id="chat-error" class="message"></p>
@@ -138,6 +138,7 @@
       </section>
     </section>
   </main>
-  <script src="app.js?v=0.4.7"></script>
+  <script src="ui-shell.js?v=0.5.0"></script>
+  <script src="app.js?v=0.5.0"></script>
 </body>
 </html>

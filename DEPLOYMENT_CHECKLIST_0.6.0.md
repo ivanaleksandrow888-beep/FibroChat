@@ -1,0 +1,11 @@
+# Deployment checklist v0.6.0
+- [ ] Backup database and environment variables
+- [ ] npm install/check/smoke pass
+- [ ] Git push succeeds
+- [ ] Coolify force rebuild succeeds
+- [ ] Admin dashboard opens
+- [ ] User filters work
+- [ ] Temporary suspension and restoration work
+- [ ] Session revocation forces login
+- [ ] Invite revocation works
+- [ ] Security activity is visible

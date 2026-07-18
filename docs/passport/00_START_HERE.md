@@ -1,3 +1,7 @@
+# FibroChat project passport — v0.6.0
+
+Current release: Administration and Security. Start with `23_ADMINISTRATION_AND_SECURITY.md` and `24_UPGRADE_052_TO_060.md`.
+
 # FibroChat — начать отсюда
 
 **Актуальная подготовленная версия:** 0.5.2.

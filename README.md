@@ -1,3 +1,7 @@
+# FibroChat v0.6.0
+
+Administration and Security release. See `RELEASE_NOTES_0.6.0.md` and `UPDATE_0.6.0.md`.
+
 # FibroChat v0.5.2
 
 Защищённый мессенджер с постоянными сессиями, PIN, доверенными устройствами, приватными контактами и уникальным Fibro ID.

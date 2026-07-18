@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+See `RELEASE_NOTES_0.6.0.md`.
+
+
 ## 0.5.1 — Private Contacts & Fibro ID
 
 - Удалён глобальный каталог пользователей из обычного интерфейса и API контактов.

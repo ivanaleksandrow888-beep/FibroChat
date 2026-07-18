@@ -38,7 +38,9 @@
       "firstMessage": "contacts",
       "fibroIdDiscovery": "everyone",
       "contactInvites": "everyone"
-    }
+    },
+    "suspendedUntil": null,
+    "securityNote": ""
   },
   {
     "id": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
@@ -79,6 +81,8 @@
       "firstMessage": "contacts",
       "fibroIdDiscovery": "everyone",
       "contactInvites": "everyone"
-    }
+    },
+    "suspendedUntil": null,
+    "securityNote": ""
   }
 ]

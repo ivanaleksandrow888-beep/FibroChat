@@ -34,7 +34,7 @@ const el = {
   logout: $("#logout-button"), contactsList: $("#contacts-list"), refreshContacts: $("#refresh-contacts"), contactFibroId: $("#contact-fibro-id"), addContact: $("#add-contact"), contactAddMessage: $("#contact-add-message"),
   emptyChat: $("#empty-chat"), chatView: $("#chat-view"), chatName: $("#chat-name"), chatPresence: $("#chat-presence"),
   messagesList: $("#messages-list"), messageForm: $("#message-form"), messageInput: $("#message-input"), sendButton: $("#send-button"), charCounter: $("#char-counter"), backToContacts: $("#back-to-contacts"), chatError: $("#chat-error"),
-  adminPanel: $("#admin-panel"), createInvite: $("#create-invite"), inviteOutput: $("#invite-output"), usersList: $("#users-list"), dashboardSummary: $("#dashboard-summary"), networkStatus: $("#network-status"), auditList: $("#audit-list"),
+  adminPanel: $("#admin-panel"), createInvite: $("#create-invite"), inviteOutput: $("#invite-output"), usersList: $("#users-list"), dashboardSummary: $("#dashboard-summary"), networkStatus: $("#network-status"), auditList: $("#audit-list"), securityActivityList: $("#security-activity-list"), invitesList: $("#invites-list"), inviteRole: $("#invite-role"), inviteDays: $("#invite-days"), adminUserSearch: $("#admin-user-search"), adminUserStatus: $("#admin-user-status"), adminUserRole: $("#admin-user-role"), adminUserRefresh: $("#admin-user-refresh"),
   subscriptionMeterBar: $("#subscription-meter-bar"), notificationCount: $("#notification-count"), notificationsList: $("#notifications-list"), refreshNotifications: $("#refresh-notifications"),
   supportForm: $("#support-form"), supportSubject: $("#support-subject"), supportText: $("#support-text"), supportMessage: $("#support-message"), supportList: $("#support-list"),
   deviceSummary: $("#device-summary"), devicesList: $("#devices-list"), refreshDevices: $("#refresh-devices"),
@@ -649,7 +649,7 @@ async function loadSupport() {
   } catch (error) { el.supportList.innerHTML = `<p class="message">${escapeHtml(error.message)}</p>`; }
 }
 
-async function loadAdmin() { await Promise.all([loadDashboard(), loadUsers(), loadAudit()]); }
+async function loadAdmin() { await Promise.all([loadDashboard(), loadUsers(), loadAudit(), loadSecurityActivity(), loadInvites()]); }
 async function loadDashboard() {
   try {
     const data = await api("/api/admin/dashboard", { method: "GET" });
@@ -661,23 +661,24 @@ async function loadDashboard() {
     for(const control of [el.networkNameInput,el.networkUrlInput,el.saveNetworkSettings,el.downloadNetworkProfile,el.downloadNetworkBackup,el.networkBackupPassword])if(control)control.disabled=!headOnly;
     el.dashboardSummary.innerHTML = [
       ["Всего", s.totalUsers], ["Активны", s.activeUsers], ["Ожидают", s.pendingUsers],
-      ["Истекают", s.expiringUsers], ["Истекли", s.expiredUsers], ["Инвайты", s.activeInvites]
+      ["Истекают", s.expiringUsers], ["Истекли", s.expiredUsers], ["Приостановлены", s.suspendedUsers], ["Сессии", s.activeSessions], ["Ошибки входа 24ч", s.failedLogins24h], ["Инвайты", s.activeInvites]
     ].map(([label,value]) => `<div class="stat-card"><strong>${value}</strong><span>${label}</span></div>`).join("");
   } catch (error) { el.networkStatus.textContent = error.message; }
 }
 async function loadUsers() {
   try {
-    const data = await api("/api/admin/users", { method: "GET" });
+    const params=new URLSearchParams();if(el.adminUserSearch?.value.trim())params.set("q",el.adminUserSearch.value.trim());if(el.adminUserStatus?.value)params.set("status",el.adminUserStatus.value);if(el.adminUserRole?.value)params.set("role",el.adminUserRole.value);const data = await api(`/api/admin/users${params.toString()?`?${params}`:""}`, { method: "GET" });
     const isHead = state.user?.role === "super_admin";
     el.usersList.innerHTML = data.users.map((user) => {
       const self = user.id === state.user.id;
       const actions = [];
       if (user.status === "pending" && isHead) actions.push(`<button class="approve" data-action="approve" data-user-id="${user.id}" type="button">Подтвердить 30 дней</button>`);
       if (user.status === "active" && isHead && !self) actions.push(`<button class="mini-button" data-action="extend" data-days="30" data-user-id="${user.id}" type="button">+30</button><button class="mini-button" data-action="extend" data-days="90" data-user-id="${user.id}" type="button">+90</button><button class="mini-button" data-action="extend" data-days="365" data-user-id="${user.id}" type="button">+365</button>`);
-      if (user.status === "active" && !self && user.role !== "super_admin") actions.push(`<button class="danger-button" data-action="suspend" data-user-id="${user.id}" type="button">Приостановить</button>`);
+      if (user.status === "active" && !self && user.role !== "super_admin") actions.push(`<button class="danger-button" data-action="suspend" data-user-id="${user.id}" type="button">Приостановить</button><button class="mini-button" data-action="temp-suspend" data-user-id="${user.id}" type="button">На время</button>`);
       if (user.status === "suspended" && isHead) actions.push(`<button class="mini-button" data-action="restore" data-user-id="${user.id}" type="button">Восстановить</button>`);
+      if (!self && user.role !== "super_admin") actions.push(`<button class="mini-button" data-action="sessions" data-user-id="${user.id}" type="button">Завершить сессии</button>`);
       if (isHead && !self && user.status !== "pending" && user.role !== "super_admin") actions.push(`<button class="mini-button" data-action="role" data-role="${user.role === "admin" ? "user" : "admin"}" data-user-id="${user.id}" type="button">${user.role === "admin" ? "Снять админа" : "Сделать админом"}</button>`);
-      return `<div class="user-row user-control"><div><strong>${escapeHtml(user.nickname)}${self ? " · Вы" : ""}</strong><small>${escapeHtml(roleName(user.role))} · ${escapeHtml(statusName(user.status))}</small><small>Подписка: ${escapeHtml(subscriptionName(user.subscriptionState))} · до ${dateText(user.subscriptionEndsAt)}</small></div><div class="user-actions">${actions.join("")}</div></div>`;
+      return `<div class="user-row user-control"><div><strong>${escapeHtml(user.displayName||user.nickname)}${self ? " · Вы" : ""}</strong><small>@${escapeHtml(user.nickname)} · ${escapeHtml(user.fibroId||"—")}</small><small>${escapeHtml(roleName(user.role))} · ${escapeHtml(statusName(user.status))}${user.suspendedUntil?` до ${dateText(user.suspendedUntil)}`:""}</small><small>Регистрация: ${dateText(user.createdAt)} · Подписка до ${dateText(user.subscriptionEndsAt)}</small></div><div class="user-actions">${actions.join("")}</div></div>`;
     }).join("");
   } catch (error) { el.usersList.textContent = error.message; }
 }
@@ -688,6 +689,9 @@ async function loadAudit() {
     el.auditList.innerHTML = data.events.map(event => `<div class="audit-row"><strong>${escapeHtml(event.type)}</strong><span>${new Date(event.createdAt).toLocaleString("ru-RU")}</span><small>${escapeHtml(names[event.actorId] || "Система")} → ${escapeHtml(names[event.targetId] || event.targetId || "—")}</small></div>`).join("") || '<p class="muted">Журнал пока пуст.</p>';
   } catch (error) { el.auditList.innerHTML = `<p class="message">${escapeHtml(error.message)}</p>`; }
 }
+
+async function loadSecurityActivity(){try{const data=await api("/api/admin/security/activity",{method:"GET"});el.securityActivityList.innerHTML=data.events.map(event=>`<div class="audit-row security-${event.type.includes("FAILED")||event.type.includes("BLOCKED")?"danger":"normal"}"><strong>${escapeHtml(event.type)}</strong><span>${new Date(event.createdAt).toLocaleString("ru-RU")}</span><small>${escapeHtml(JSON.stringify(event.details||{}))}</small></div>`).join("")||'<p class="muted">Событий пока нет.</p>';}catch(error){el.securityActivityList.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;}}
+async function loadInvites(){try{const data=await api("/api/admin/invites",{method:"GET"});el.invitesList.innerHTML=data.invites.map(i=>`<div class="invite-row"><div><code>${escapeHtml(i.code)}</code><small>${escapeHtml(roleName(i.role||"user"))} · до ${dateText(i.expiresAt)} · ${i.usedAt?"использован":i.revokedAt?"отозван":"активен"}</small></div>${!i.usedAt&&!i.revokedAt?`<button class="danger-button" data-invite-revoke="${i.id}" type="button">Отозвать</button>`:""}</div>`).join("")||'<p class="muted">Инвайтов нет.</p>';}catch(error){el.invitesList.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;}}
 
 el.registerTab.addEventListener("click", () => setMode("register"));
 el.loginTab.addEventListener("click", () => setMode("login"));
@@ -741,7 +745,9 @@ el.profilePageCopyId?.addEventListener("click",()=>el.copyFibroId?.click());
 el.profileShareLink?.addEventListener("click",async()=>{const url=state.profileData?.inviteUrl;if(!url)return;try{if(navigator.share)await navigator.share({title:"FibroChat",text:`Добавьте меня в FibroChat: ${state.user.fibroId}`,url});else{await navigator.clipboard.writeText(url);el.profileMessage.textContent="Ссылка приглашения скопирована.";}}catch{}});
 el.blockedList?.addEventListener("click",async event=>{const button=event.target.closest("[data-unblock-id]");if(!button)return;try{await contactAction(button.dataset.unblockId,"unblock");}catch(error){alert(error.message);}});
 
-el.createInvite.addEventListener("click", async () => { try { const data = await api("/api/admin/invites", { method: "POST", body: JSON.stringify({ validDays: 7 }) }); el.inviteOutput.textContent = data.invite.code; await loadAdmin(); } catch (error) { el.inviteOutput.textContent = error.message; } });
+el.adminUserRefresh?.addEventListener("click",()=>loadUsers());el.adminUserSearch?.addEventListener("input",()=>{clearTimeout(state.adminSearchTimer);state.adminSearchTimer=setTimeout(loadUsers,250);});el.adminUserStatus?.addEventListener("change",loadUsers);el.adminUserRole?.addEventListener("change",loadUsers);el.invitesList?.addEventListener("click",async event=>{const button=event.target.closest("[data-invite-revoke]");if(!button)return;if(!confirm("Отозвать этот инвайт?"))return;await api(`/api/admin/invites/${button.dataset.inviteRevoke}/revoke`,{method:"POST"});await loadInvites();await loadDashboard();});
+
+el.createInvite.addEventListener("click", async () => { try { const data = await api("/api/admin/invites", { method: "POST", body: JSON.stringify({ validDays: Number(el.inviteDays?.value||7), role: el.inviteRole?.value||"user" }) }); el.inviteOutput.textContent = data.invite.code; await loadAdmin(); } catch (error) { el.inviteOutput.textContent = error.message; } });
 el.usersList.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-user-id][data-action]"); if (!button) return;
   const id = button.dataset.userId; const action = button.dataset.action; button.disabled = true;
@@ -751,6 +757,8 @@ el.usersList.addEventListener("click", async (event) => {
     if (action === "suspend" && confirm("Приостановить доступ пользователя?")) await api(`/api/admin/users/${id}/suspend`, { method: "POST" });
     if (action === "restore") await api(`/api/admin/users/${id}/restore`, { method: "POST" });
     if (action === "role") await api(`/api/admin/users/${id}/role`, { method: "POST", body: JSON.stringify({ role: button.dataset.role }) });
+    if (action === "sessions" && confirm("Завершить все активные сессии пользователя?")) await api(`/api/admin/users/${id}/sessions/revoke`, { method: "POST" });
+    if (action === "temp-suspend") { const minutes=Number(prompt("На сколько минут приостановить доступ?", "60")); if(minutes>0) await api(`/api/admin/users/${id}/suspend-temporary`, { method: "POST", body: JSON.stringify({ minutes, reason: "Временная блокировка администратором" }) }); }
     await loadAdmin(); await loadContacts();
   } catch (error) { alert(error.message); button.disabled = false; }
 });

@@ -134,10 +134,11 @@
           </section>
 
           <button id="create-invite" class="primary" type="button">Создать инвайт</button>
-          <code id="invite-output">Новый код появится здесь</code>
-          <h4>Пользователи и подписки</h4><p class="muted">Продление доступно на 30, 90 или 365 дней.</p>
+          <div class="invite-create-row"><select id="invite-role"><option value="user">Пользователь</option><option value="admin">Администратор</option></select><select id="invite-days"><option value="1">1 день</option><option value="7" selected>7 дней</option><option value="30">30 дней</option></select></div><code id="invite-output">Новый код появится здесь</code><div id="invites-list" class="invites-list"></div>
+          <h4>Пользователи и безопасность</h4><p class="muted">Поиск, роли, временная блокировка и управление сессиями.</p>
+          <div class="admin-filters"><input id="admin-user-search" placeholder="Никнейм, имя или Fibro ID"><select id="admin-user-status"><option value="">Все статусы</option><option value="active">Активные</option><option value="pending">Ожидают</option><option value="suspended">Приостановлены</option></select><select id="admin-user-role"><option value="">Все роли</option><option value="user">Пользователь</option><option value="admin">Администратор</option><option value="super_admin">Головной администратор</option></select><button id="admin-user-refresh" class="mini-button" type="button">Обновить</button></div>
           <div id="users-list" class="users-list"></div>
-          <details class="audit-box">
+          <details class="audit-box" open><summary>События безопасности</summary><div id="security-activity-list" class="audit-list"><p class="muted">Загрузка…</p></div></details><details class="audit-box">
             <summary>Журнал действий</summary>
             <div id="audit-list" class="audit-list"><p class="muted">Загрузка…</p></div>
           </details>
@@ -147,7 +148,7 @@
       <section class="chat card">
         <div id="empty-chat" class="empty-chat"><div class="empty-icon">✦</div><h2>Первый контакт</h2><p>Выбери пользователя слева, чтобы открыть диалог.</p></div>
         <div id="chat-view" class="chat-view hidden">
-          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.5.2</span></header>
+          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.6.0</span></header>
           <div id="messages-list" class="messages-list"></div>
           <form id="message-form" class="composer"><textarea id="message-input" rows="1" maxlength="4000" placeholder="Написать сообщение…"></textarea><div class="composer-actions"><span id="char-counter" class="char-counter">0/4000</span><button id="send-button" class="send-button" type="submit" disabled>Отправить</button></div></form>
           <p id="chat-error" class="message"></p>
@@ -155,7 +156,7 @@
       </section>
     </section>
   </main>
-  <script src="ui-shell.js?v=0.5.2"></script>
-  <script src="app.js?v=0.5.2"></script>
+  <script src="ui-shell.js?v=0.6.0"></script>
+  <script src="app.js?v=0.6.0"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@
   const contactsHead=[...oldSidebar.querySelectorAll(".section-head")].find(x=>x.querySelector("#refresh-contacts"));
   const contacts=oldSidebar.querySelector("#contacts-list");
   const contactAdd=oldSidebar.querySelector(".contact-add-box");
+  const profilePanel=oldSidebar.querySelector("#profile-panel");
   const devicePanel=oldSidebar.querySelector(".device-panel");
   const notificationPanel=[...oldSidebar.querySelectorAll(".service-panel")].find(x=>x.querySelector("#notifications-list"));
   const supportPanel=[...oldSidebar.querySelectorAll(".service-panel")].find(x=>x.querySelector("#support-list"));
@@ -23,6 +24,7 @@
   nav.className="app-navigation";
   nav.innerHTML=`
     <button type="button" data-page="chats" class="app-nav-button active"><span>💬</span><b>Чаты</b></button>
+    <button type="button" data-page="profile" class="app-nav-button"><span>👤</span><b>Профиль</b></button>
     <button type="button" data-page="notifications" class="app-nav-button"><span>🔔</span><b>Уведомления</b><em id="nav-notification-count"></em></button>
     <button type="button" data-page="settings" class="app-nav-button"><span>⚙️</span><b>Настройки</b></button>
     <button type="button" data-page="admin" id="admin-nav-button" class="app-nav-button hidden"><span>🛡️</span><b>Администрирование</b></button>`;
@@ -40,6 +42,10 @@
   chat.classList.add("chat-panel");
   chatsLayout.append(listPanel,chat);chatsPage.append(chatsLayout);
 
+  const profilePage=document.createElement("section");profilePage.className="app-page";profilePage.dataset.page="profile";
+  profilePage.innerHTML='<header class="page-heading"><div><h2>Профиль</h2><p>Личные данные, QR-код и настройки приватности.</p></div></header>';
+  if(profilePanel)profilePage.append(profilePanel);
+
   const notificationsPage=document.createElement("section");notificationsPage.className="app-page";notificationsPage.dataset.page="notifications";
   notificationsPage.innerHTML='<header class="page-heading"><div><h2>Уведомления</h2><p>Системные события, входы и сообщения сети.</p></div></header>';
   if(notificationPanel)notificationsPage.append(notificationPanel);
@@ -55,7 +61,7 @@
   adminPage.innerHTML='<header class="page-heading"><div><h2>Панель администратора</h2><p>Инвайты, пользователи, роли и состояние сети.</p></div></header>';
   if(adminPanel)adminPage.append(adminPanel);
 
-  main.append(chatsPage,notificationsPage,settingsPage,adminPage);
+  main.append(chatsPage,profilePage,notificationsPage,settingsPage,adminPage);
   appView.replaceChildren(rail,main);
   appView.classList.add("workspace-v050");
 

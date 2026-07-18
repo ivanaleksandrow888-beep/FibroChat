@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.5.1";
+const CLIENT_VERSION = "0.5.2";
 const CLIENT_PROTOCOL = "1.1";
 
 const state = {
@@ -21,7 +21,9 @@ const state = {
   bootstrapRequired: false,
   pinUnlocked: false,
   pendingRestoreUser: null,
-  identityBundle: null
+  identityBundle: null,
+  profileData: null,
+  pendingAvatarDataUrl: undefined
 };
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -38,6 +40,7 @@ const el = {
   deviceSummary: $("#device-summary"), devicesList: $("#devices-list"), refreshDevices: $("#refresh-devices"),
   vaultPassword: $("#vault-password"), exportVault: $("#export-vault"), vaultMessage: $("#vault-message"), vaultImportFile: $("#vault-import-file"), vaultImportMessage: $("#vault-import-message"), logoutAll: $("#logout-all-button"),
   currentPassword: $("#current-password"), newPassword: $("#new-password"), newPasswordConfirm: $("#new-password-confirm"), changePassword: $("#change-password"), passwordMessage: $("#password-message"),
+  profileAvatarPreview: $("#profile-avatar-preview"), profileAvatarFile: $("#profile-avatar-file"), profileAvatarRemove: $("#profile-avatar-remove"), profileEditorName: $("#profile-editor-name"), profileCreatedAt: $("#profile-created-at"), profileDisplayName: $("#profile-display-name"), profileBio: $("#profile-bio"), profilePageFibroId: $("#profile-page-fibro-id"), profilePageCopyId: $("#profile-page-copy-id"), profileQr: $("#profile-qr"), profileShareLink: $("#profile-share-link"), privacyProfile: $("#privacy-profile"), privacyFirstMessage: $("#privacy-first-message"), privacyDiscovery: $("#privacy-discovery"), privacyInvites: $("#privacy-invites"), saveProfile: $("#save-profile"), profileMessage: $("#profile-message"), blockedList: $("#blocked-list"),
   networkProfileFile: $("#network-profile-file"), networkProfileResult: $("#network-profile-result"), profileNetworkName: $("#profile-network-name"), profileNetworkId: $("#profile-network-id"), openProfileNetwork: $("#open-profile-network"), networkProfileMessage: $("#network-profile-message"),
   networkNameInput: $("#network-name-input"), networkUrlInput: $("#network-url-input"), saveNetworkSettings: $("#save-network-settings"), downloadNetworkProfile: $("#download-network-profile"), networkSettingsMessage: $("#network-settings-message"), networkBackupPassword: $("#network-backup-password"), downloadNetworkBackup: $("#download-network-backup"), networkBackupMessage: $("#network-backup-message")
 };
@@ -490,7 +493,7 @@ async function checkHealth() {
 function showAuth(clearTokens = true) { clearInterval(state.pollingTimer); stopRealtime(); const previousUserId=state.user?.id||state.pendingRestoreUser?.id; if(clearTokens){clearSession();clearSessionIdentity(previousUserId);} state.user = null; state.identity = null; state.identityBundle = null; state.activeContact = null; el.appView.classList.add("hidden"); el.authView.classList.remove("hidden"); }
 function showApp(user) {
   state.user = user; localStorage.setItem("fibrochat_last_user_id",user.id); el.authView.classList.add("hidden"); el.appView.classList.remove("hidden");
-  el.profileNickname.textContent = user.nickname; if(el.profileFibroId)el.profileFibroId.textContent=user.fibroId||"—"; el.profileStatus.textContent = `${statusName(user.status)} · ключи ${user.keysConfigured ? "настроены" : "не настроены"}`;
+  el.profileNickname.textContent = user.displayName || user.nickname; if(el.profileFibroId)el.profileFibroId.textContent=user.fibroId||"—"; el.profileStatus.textContent = `${statusName(user.status)} · ключи ${user.keysConfigured ? "настроены" : "не настроены"}`;
   const days = Number(user.subscriptionDaysRemaining || 0);
   el.profileSubscription.textContent = user.subscriptionState === "expired" ? "Подписка истекла — чат заблокирован" : `Подписка до ${dateText(user.subscriptionEndsAt)} · осталось ${days} дн.`;
   el.subscriptionMeterBar.style.width = `${Math.max(0, Math.min(100, (days / 30) * 100))}%`;
@@ -498,10 +501,12 @@ function showApp(user) {
   el.currentRole.textContent = roleName(user.role);
   const isAdmin = ["admin", "super_admin"].includes(user.role); el.adminPanel.classList.toggle("hidden", !isAdmin);
   if (user.status === "active" && user.subscriptionState !== "expired") loadContacts(); else el.contactsList.innerHTML = `<p class="muted">${user.subscriptionState === "expired" ? "Подписка истекла. Переписка временно недоступна, но поддержка работает." : "Аккаунт ожидает подтверждения администратора."}</p>`;
-  loadNotifications(); loadSupport(); loadDevices(); installSecurityControls(); setTimeout(offerPushSetup,700); if(("Notification" in window&&Notification.permission==="granted"))enableWebPush().catch(()=>null);
+  loadNotifications(); loadSupport(); loadDevices(); loadProfile(); installSecurityControls(); setTimeout(offerPushSetup,700); if(("Notification" in window&&Notification.permission==="granted"))enableWebPush().catch(()=>null);
   if (isAdmin) loadAdmin(); clearInterval(state.pollingTimer);
   connectRealtime();
-  window.FibroRouter?.open(window.FibroRouter.current()||"chats",{writeHash:false});
+  const sharedFibroId=new URLSearchParams(location.search).get("add");
+  if(sharedFibroId&&el.contactFibroId){el.contactFibroId.value=sharedFibroId;window.FibroRouter?.open("chats",{writeHash:false});history.replaceState(null,"",location.pathname+location.hash);}
+  else window.FibroRouter?.open(window.FibroRouter.current()||"chats",{writeHash:false});
   state.pollingTimer = setInterval(async () => { try { await api("/api/presence", { method: "POST" }); if (!state.realtimeConnected && state.user?.status === "active" && state.user?.subscriptionState !== "expired") { await loadContacts(false); if (state.activeContact) await loadMessages(false); } await loadNotifications(false); } catch {} }, 15000);
 }
 async function restoreSession() {
@@ -565,9 +570,17 @@ async function handleAuth(event) {
     if(!hasPinVault(data.user.id))setTimeout(()=>openPinModal({mode:"setup",canCancel:true,onSuccess:()=>{}}),350);
   } catch (error) { setAuthMessage(error.message); }
 }
+function avatarMarkup(user,size="") { const name=escapeHtml((user.displayName||user.nickname||"?").slice(0,1).toUpperCase()); return user.avatarDataUrl?`<img class="avatar-image ${size}" src="${user.avatarDataUrl}" alt="">`:`<span class="avatar ${size}">${name}</span>`; }
+async function loadProfile(){
+  if(!state.user)return;
+  try{const data=await api("/api/profile",{method:"GET"});state.profileData=data;const p=data.profile;state.user={...state.user,...p};el.profileDisplayName.value=p.displayName||p.nickname;el.profileBio.value=p.bio||"";el.profileEditorName.textContent=p.displayName||p.nickname;el.profileCreatedAt.textContent=`Зарегистрирован: ${dateText(p.createdAt)} · ${roleName(p.role)}`;el.profilePageFibroId.textContent=p.fibroId;el.profileQr.src=data.qrDataUrl;el.profileAvatarPreview.src=p.avatarDataUrl||"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><rect width='100%' height='100%' fill='%232c3344'/><text x='50%' y='55%' text-anchor='middle' font-size='72' fill='white'>${(p.displayName||p.nickname||'?').slice(0,1).toUpperCase()}</text></svg>`);el.privacyProfile.value=p.privacy.profileVisibility;el.privacyFirstMessage.value=p.privacy.firstMessage;el.privacyDiscovery.value=p.privacy.fibroIdDiscovery;el.privacyInvites.value=p.privacy.contactInvites;renderBlocked();}catch(error){if(el.profileMessage)el.profileMessage.textContent=error.message;}
+}
+async function renderBlocked(){if(!el.blockedList)return;try{const data=await api("/api/blocked",{method:"GET"});el.blockedList.innerHTML=data.blocked.map(user=>`<div class="blocked-row"><span>${avatarMarkup(user,"small")}<strong>${escapeHtml(user.displayName||user.nickname||"Пользователь")}</strong></span><button class="mini-button" data-unblock-id="${user.id}" type="button">Разблокировать</button></div>`).join("")||'<p class="muted">Список пуст.</p>';}catch(error){el.blockedList.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;}}
+async function saveProfile(){el.profileMessage.textContent="Сохранение…";try{const body={displayName:el.profileDisplayName.value,bio:el.profileBio.value,privacy:{profileVisibility:el.privacyProfile.value,firstMessage:el.privacyFirstMessage.value,fibroIdDiscovery:el.privacyDiscovery.value,contactInvites:el.privacyInvites.value}};if(state.pendingAvatarDataUrl!==undefined)body.avatarDataUrl=state.pendingAvatarDataUrl;const data=await api("/api/profile",{method:"PUT",body:JSON.stringify(body)});state.pendingAvatarDataUrl=undefined;state.user={...state.user,...data.user};el.profileNickname.textContent=data.user.displayName||data.user.nickname;el.profileMessage.textContent="Профиль сохранён.";el.profileMessage.className="message success";await loadProfile();await loadContacts();}catch(error){el.profileMessage.textContent=error.message;el.profileMessage.className="message";}}
+async function contactAction(id,action){const labels={delete:"Удалить контакт?",block:"Заблокировать пользователя и удалить контакт?"};if(labels[action]&&!confirm(labels[action]))return;await api(`/api/contacts/${id}/${action}`,{method:"POST"});if(state.activeContact?.id===id){state.activeContact=null;el.chatView.classList.add("hidden");el.emptyChat.classList.remove("hidden");}await loadContacts();await renderBlocked();}
 async function loadContacts(render = true) { try { const data = await api("/api/contacts", { method: "GET" }); state.contacts = data.contacts; if (state.activeContact) { state.activeContact = state.contacts.find((c) => c.id === state.activeContact.id) || null; if (state.activeContact) updateChatHeader(); } if (!render) return renderContacts(); renderContacts(); } catch (error) { el.contactsList.innerHTML = `<p class="message">${escapeHtml(error.message)}</p>`; } }
-function renderContacts() { el.contactsList.innerHTML = state.contacts.map((contact) => `<button class="contact ${state.activeContact?.id === contact.id ? "active" : ""}" data-contact-id="${contact.id}" type="button"><span class="contact-main"><span class="avatar">${escapeHtml(contact.nickname.slice(0,1).toUpperCase())}</span><span><strong>${escapeHtml(contact.nickname)}</strong><small>${contact.online ? "В сети" : "Не в сети"} · 🔒${contact.lastMessageAt ? ` · ${timeText(contact.lastMessageAt)}` : ""}</small></span></span><span class="contact-tail">${contact.unreadCount ? `<span class="unread-badge">${contact.unreadCount > 99 ? "99+" : contact.unreadCount}</span>` : ""}<span class="presence ${contact.online ? "online" : ""}"></span></span></button>`).join("") || '<p class="muted">Контактов пока нет. Добавьте человека по его полному Fibro ID.</p>'; }
-function updateChatHeader() { if (!state.activeContact) return; el.chatName.textContent = state.activeContact.nickname; el.chatPresence.textContent = state.activeContact.online ? "В сети" : "Не в сети"; }
+function renderContacts() { el.contactsList.innerHTML = state.contacts.map((contact) => `<div class="contact-wrap"><button class="contact ${state.activeContact?.id === contact.id ? "active" : ""}" data-contact-id="${contact.id}" type="button"><span class="contact-main">${avatarMarkup(contact)}<span><strong>${escapeHtml(contact.displayName||contact.nickname)}</strong><small>${contact.online ? "В сети" : "Не в сети"} · 🔒${contact.lastMessageAt ? ` · ${timeText(contact.lastMessageAt)}` : ""}</small></span></span><span class="contact-tail">${contact.unreadCount ? `<span class="unread-badge">${contact.unreadCount > 99 ? "99+" : contact.unreadCount}</span>` : ""}<span class="presence ${contact.online ? "online" : ""}"></span></span></button><div class="contact-actions"><button type="button" data-contact-action="delete" data-contact-target="${contact.id}">Удалить</button><button type="button" data-contact-action="block" data-contact-target="${contact.id}">Блок</button></div></div>`).join("") || '<p class="muted">Контактов пока нет. Добавьте человека по его полному Fibro ID.</p>'; }
+function updateChatHeader() { if (!state.activeContact) return; el.chatName.textContent = state.activeContact.displayName || state.activeContact.nickname; el.chatPresence.textContent = state.activeContact.online ? "В сети" : "Не в сети"; }
 async function openChat(contactId) { state.activeContact = state.contacts.find((contact) => contact.id === contactId) || null; if (!state.activeContact) return; renderContacts(); updateChatHeader(); el.emptyChat.classList.add("hidden"); el.chatView.classList.remove("hidden"); document.body.classList.add("chat-open"); await loadMessages(true); await loadContacts(false); el.messageInput.focus(); }
 async function loadMessages(scroll = false) {
   if (!state.activeContact) return;
@@ -682,7 +695,7 @@ el.authForm.addEventListener("submit", handleAuth);
 el.logout.addEventListener("click", async () => { try { await api("/api/logout", { method: "POST" }); } catch {} showAuth(); });
 el.logoutAll.addEventListener("click", async()=>{if(!confirm("Завершить все активные сессии аккаунта на всех устройствах?"))return;try{await api("/api/logout-all",{method:"POST"});alert("Все сессии завершены.");}catch(error){alert(error.message);}showAuth();});
 el.refreshContacts.addEventListener("click", () => loadContacts(true));
-el.contactsList.addEventListener("click", (event) => { const button = event.target.closest("[data-contact-id]"); if (button) openChat(button.dataset.contactId); });
+el.contactsList.addEventListener("click", async (event) => { const action=event.target.closest("[data-contact-action]");if(action){event.stopPropagation();try{await contactAction(action.dataset.contactTarget,action.dataset.contactAction);}catch(error){alert(error.message);}return;} const button = event.target.closest("[data-contact-id]"); if (button) openChat(button.dataset.contactId); });
 el.messageForm.addEventListener("submit", sendMessage);
 el.messageInput.addEventListener("input", updateComposer);
 el.messageInput.addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); if (!el.sendButton.disabled) el.messageForm.requestSubmit(); } });
@@ -719,6 +732,14 @@ el.downloadNetworkBackup?.addEventListener("click",async()=>{const password=el.n
 el.copyFibroId?.addEventListener("click",async()=>{if(!state.user?.fibroId)return;try{await navigator.clipboard.writeText(state.user.fibroId);el.copyFibroId.textContent="Скопировано";setTimeout(()=>el.copyFibroId.textContent="Копировать",1200);}catch{prompt("Скопируйте Fibro ID",state.user.fibroId);}});
 el.addContact?.addEventListener("click",async()=>{const fibroId=String(el.contactFibroId?.value||"").trim();el.contactAddMessage.textContent="Добавление…";try{const data=await api("/api/contacts/add",{method:"POST",body:JSON.stringify({fibroId})});el.contactFibroId.value="";el.contactAddMessage.textContent=`${data.contact.nickname} добавлен в контакты.`;el.contactAddMessage.className="message success";await loadContacts();}catch(error){el.contactAddMessage.textContent=error.message;el.contactAddMessage.className="message";}});
 el.contactFibroId?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();el.addContact?.click();}});
+
+
+el.profileAvatarFile?.addEventListener("change",async()=>{const file=el.profileAvatarFile.files?.[0];if(!file)return;if(file.size>250000){el.profileMessage.textContent="Файл больше 250 КБ.";return;}const reader=new FileReader();reader.onload=()=>{state.pendingAvatarDataUrl=String(reader.result);el.profileAvatarPreview.src=state.pendingAvatarDataUrl;};reader.readAsDataURL(file);});
+el.profileAvatarRemove?.addEventListener("click",()=>{state.pendingAvatarDataUrl="";el.profileAvatarPreview.removeAttribute("src");});
+el.saveProfile?.addEventListener("click",saveProfile);
+el.profilePageCopyId?.addEventListener("click",()=>el.copyFibroId?.click());
+el.profileShareLink?.addEventListener("click",async()=>{const url=state.profileData?.inviteUrl;if(!url)return;try{if(navigator.share)await navigator.share({title:"FibroChat",text:`Добавьте меня в FibroChat: ${state.user.fibroId}`,url});else{await navigator.clipboard.writeText(url);el.profileMessage.textContent="Ссылка приглашения скопирована.";}}catch{}});
+el.blockedList?.addEventListener("click",async event=>{const button=event.target.closest("[data-unblock-id]");if(!button)return;try{await contactAction(button.dataset.unblockId,"unblock");}catch(error){alert(error.message);}});
 
 el.createInvite.addEventListener("click", async () => { try { const data = await api("/api/admin/invites", { method: "POST", body: JSON.stringify({ validDays: 7 }) }); el.inviteOutput.textContent = data.invite.code; await loadAdmin(); } catch (error) { el.inviteOutput.textContent = error.message; } });
 el.usersList.addEventListener("click", async (event) => {

@@ -15,7 +15,7 @@
 <body>
   <main class="shell">
     <section id="auth-view" class="card auth-card">
-      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>Private Contacts v0.5.1</p></div></div>
+      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>Profile & Privacy v0.5.2</p></div></div>
       <div class="node-line"><span id="node-dot" class="dot"></span><span id="node-text">Проверка головного узла…</span></div>
       <div class="tabs"><button id="register-tab" class="tab active" type="button">Регистрация</button><button id="login-tab" class="tab" type="button">Вход</button></div>
       <form id="auth-form">
@@ -57,6 +57,23 @@
           <button id="logout-button" class="ghost" type="button">Выйти</button>
         </header>
         <div class="me-card"><strong id="profile-nickname">—</strong><div class="fibro-id-line"><code id="profile-fibro-id">—</code><button id="copy-fibro-id" class="mini-button" type="button">Копировать</button></div><span id="profile-status">—</span><small id="profile-subscription">—</small><div class="subscription-meter"><span id="subscription-meter-bar"></span></div></div>
+
+        <section id="profile-panel" class="service-panel profile-panel">
+          <div class="section-head"><div><h3>Профиль и приватность</h3><p>Ваше имя, аватар, QR и правила доступа</p></div></div>
+          <div class="profile-editor-head"><img id="profile-avatar-preview" class="profile-avatar-large" alt="Аватар"><div><strong id="profile-editor-name">—</strong><small id="profile-created-at">—</small></div></div>
+          <label class="file-button">Выбрать аватар<input id="profile-avatar-file" type="file" accept="image/png,image/jpeg,image/webp"></label>
+          <button id="profile-avatar-remove" class="mini-button" type="button">Удалить аватар</button>
+          <label>Отображаемое имя<input id="profile-display-name" maxlength="60"></label>
+          <label>Описание<textarea id="profile-bio" maxlength="500" rows="4" placeholder="Немного о себе"></textarea></label>
+          <div class="profile-id-card"><code id="profile-page-fibro-id">—</code><button id="profile-page-copy-id" class="mini-button" type="button">Копировать ID</button></div>
+          <div class="profile-qr-wrap"><img id="profile-qr" alt="QR-код Fibro ID"><button id="profile-share-link" class="mini-button" type="button">Поделиться приглашением</button></div>
+          <label>Кто видит профиль<select id="privacy-profile"><option value="everyone">Все</option><option value="contacts">Только контакты</option><option value="nobody">Никто</option></select></label>
+          <label>Кто может написать первым<select id="privacy-first-message"><option value="everyone">Все</option><option value="contacts">Только контакты</option><option value="nobody">Никто</option></select></label>
+          <label>Кто может найти по Fibro ID<select id="privacy-discovery"><option value="everyone">Все</option><option value="contacts">Только контакты</option><option value="nobody">Никто</option></select></label>
+          <label>Кто может добавить в контакты<select id="privacy-invites"><option value="everyone">Все</option><option value="contacts">Только контакты</option><option value="nobody">Никто</option></select></label>
+          <button id="save-profile" class="primary" type="button">Сохранить профиль</button><p id="profile-message" class="message"></p>
+          <h4>Заблокированные пользователи</h4><div id="blocked-list" class="blocked-list"><p class="muted">Список пуст.</p></div>
+        </section>
         <section class="service-panel device-panel">
           <div class="section-head"><div><h3>Доверенные устройства</h3><p id="device-summary">Загрузка…</p></div><button id="refresh-devices" class="icon-button" type="button">↻</button></div>
           <div id="devices-list" class="devices-list"><p class="muted">Загрузка…</p></div>
@@ -130,7 +147,7 @@
       <section class="chat card">
         <div id="empty-chat" class="empty-chat"><div class="empty-icon">✦</div><h2>Первый контакт</h2><p>Выбери пользователя слева, чтобы открыть диалог.</p></div>
         <div id="chat-view" class="chat-view hidden">
-          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.5.1</span></header>
+          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.5.2</span></header>
           <div id="messages-list" class="messages-list"></div>
           <form id="message-form" class="composer"><textarea id="message-input" rows="1" maxlength="4000" placeholder="Написать сообщение…"></textarea><div class="composer-actions"><span id="char-counter" class="char-counter">0/4000</span><button id="send-button" class="send-button" type="submit" disabled>Отправить</button></div></form>
           <p id="chat-error" class="message"></p>
@@ -138,7 +155,7 @@
       </section>
     </section>
   </main>
-  <script src="ui-shell.js?v=0.5.1"></script>
-  <script src="app.js?v=0.5.1"></script>
+  <script src="ui-shell.js?v=0.5.2"></script>
+  <script src="app.js?v=0.5.2"></script>
 </body>
 </html>

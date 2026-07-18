@@ -21,5 +21,8 @@
   "webPushVapid": {
     "publicKey": "BB6BevE5h9sFXdQw3BbAdmMW5sH5ZQTeQLoxw_8ZNPCXWvrHBDVmonXTOAVcB11eUJFsLDAKcJDTYwbkTHPEsvk",
     "privateKey": "Rek2JORsHcj2KAfWZzB3fJyZZyDD1GfoityZfXz43Kw"
-  }
+  },
+  "headUserId": "98b4f652-5ba7-4cce-967f-3e4e955ece16",
+  "headNickname": "Bob",
+  "activatedAt": "2026-07-11T23:17:57.561Z"
 }

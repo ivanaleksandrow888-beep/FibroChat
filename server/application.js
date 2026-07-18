@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const webpush = require("web-push");
+const QRCode = require("qrcode");
 const { URL } = require("url");
 const config = require("./config");
 const store = require("./storage/store");
@@ -39,7 +40,7 @@ const DEVICE_APPROVAL_TTL_MS = 5 * 60 * 1000;
 const APP_VERSION = config.APP_VERSION;
 const PROTOCOL_VERSION = config.PROTOCOL_VERSION;
 const MIN_CLIENT_PROTOCOL = "1.1";
-const PROTOCOL_CAPABILITIES = ["auth.session.v1","identity.keys.v1","messages.secure-envelope.v1","messages.delivery-queue.v1","events.sse-envelope.v1","subscriptions.v1","devices.trust.v1","network.profile.v1","contacts.private.v1","identity.fibro-id.v1"];
+const PROTOCOL_CAPABILITIES = ["auth.session.v1","identity.keys.v1","messages.secure-envelope.v1","messages.delivery-queue.v1","events.sse-envelope.v1","subscriptions.v1","devices.trust.v1","network.profile.v1","contacts.private.v1","identity.fibro-id.v1","profile.v1","privacy.controls.v1","contacts.blocking.v1","identity.qr.v1"];
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -81,6 +82,11 @@ async function ensureDataStore() {
     let fibroId=normalizeFibroId(user.fibroId);
     if(!/^FIBRO-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(fibroId)||usedFibroIds.has(fibroId))fibroId=createFibroId(users);
     if(user.fibroId!==fibroId){user.fibroId=fibroId;usersChanged=true;}usedFibroIds.add(fibroId);
+    if(typeof user.displayName!=="string"){user.displayName=user.nickname;usersChanged=true;}
+    if(typeof user.bio!=="string"){user.bio="";usersChanged=true;}
+    if(typeof user.avatarDataUrl!=="string"){user.avatarDataUrl="";usersChanged=true;}
+    if(!Array.isArray(user.blockedUserIds)){user.blockedUserIds=[];usersChanged=true;}
+    if(!user.privacy||typeof user.privacy!=="object"){user.privacy={profileVisibility:"contacts",firstMessage:"contacts",fibroIdDiscovery:"everyone",contactInvites:"everyone"};usersChanged=true;}
   }
   const invites=readJson(INVITES_FILE);
   for(const invite of invites){
@@ -135,7 +141,8 @@ function cleanDeviceName(value){const name=String(value||"").trim().replace(/[<>
 function validDeviceId(value){return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value||""));}
 function publicDevice(device,currentId=null){return{id:device.id,userId:device.userId,name:device.name,status:device.status,createdAt:device.createdAt,approvedAt:device.approvedAt||null,approvedBy:device.approvedBy||null,lastSeenAt:device.lastSeenAt||null,revokedAt:device.revokedAt||null,current:device.id===currentId};}
 function createTrustedDevice(userId,deviceId,name,approvedBy="self"){const list=readJson(DEVICES_FILE);const now=new Date().toISOString();const device={id:deviceId,userId,name:cleanDeviceName(name),status:"trusted",createdAt:now,approvedAt:now,approvedBy,lastSeenAt:now,revokedAt:null};list.push(device);writeJson(DEVICES_FILE,list);return device;}
-function publicUser(user){return{id:user.id,fibroId:user.fibroId||null,nickname:user.nickname,role:user.role,status:user.status,createdAt:user.createdAt,approvedAt:user.approvedAt||null,approvedBy:user.approvedBy||null,subscriptionEndsAt:user.subscriptionEndsAt||null,subscriptionState:subscriptionState(user),subscriptionDaysRemaining:subscriptionDaysRemaining(user),keysConfigured:Boolean(user.encryptionPublicKey&&user.signingPublicKey),encryptionPublicKey:user.encryptionPublicKey||null,signingPublicKey:user.signingPublicKey||null};}
+function privacyDefaults(value={}){return{profileVisibility:["everyone","contacts","nobody"].includes(value.profileVisibility)?value.profileVisibility:"contacts",firstMessage:["everyone","contacts","nobody"].includes(value.firstMessage)?value.firstMessage:"contacts",fibroIdDiscovery:["everyone","contacts","nobody"].includes(value.fibroIdDiscovery)?value.fibroIdDiscovery:"everyone",contactInvites:["everyone","contacts","nobody"].includes(value.contactInvites)?value.contactInvites:"everyone"};}
+function publicUser(user){return{id:user.id,fibroId:user.fibroId||null,nickname:user.nickname,displayName:user.displayName||user.nickname,bio:user.bio||"",avatarDataUrl:user.avatarDataUrl||"",privacy:privacyDefaults(user.privacy),blockedUserIds:Array.isArray(user.blockedUserIds)?user.blockedUserIds:[],role:user.role,status:user.status,createdAt:user.createdAt,approvedAt:user.approvedAt||null,approvedBy:user.approvedBy||null,subscriptionEndsAt:user.subscriptionEndsAt||null,subscriptionState:subscriptionState(user),subscriptionDaysRemaining:subscriptionDaysRemaining(user),keysConfigured:Boolean(user.encryptionPublicKey&&user.signingPublicKey),encryptionPublicKey:user.encryptionPublicKey||null,signingPublicKey:user.signingPublicKey||null};}
 function audit(type, actorId, targetId=null, details={}) { const events=readJson(AUDIT_FILE); events.push({id:crypto.randomUUID(),type,actorId:actorId||null,targetId,details,createdAt:new Date().toISOString()}); if(events.length>5000) events.splice(0,events.length-5000); writeJson(AUDIT_FILE,events); }
 function publicMessage(message){return{id:message.id,senderId:message.senderId,recipientId:message.recipientId,envelope:message.envelope,signature:message.signature,createdAt:message.createdAt,deliveredAt:message.deliveredAt||null,readAt:message.readAt||null,deliveryAttempts:Number(message.deliveryAttempts)||0,lastAttemptAt:message.lastAttemptAt||null,nextAttemptAt:message.nextAttemptAt||null};}
 function deliveryDelay(attempt){return Math.min(DELIVERY_MAX_BACKOFF_MS,Math.max(5_000,5_000*(2**Math.min(Math.max(attempt-1,0),6))));}
@@ -213,6 +220,14 @@ function createFibroId(existingUsers=[]){
   throw new Error("Не удалось создать уникальный Fibro ID");
 }
 function normalizeFibroId(value){return String(value||"").trim().toUpperCase();}
+function cleanDisplayName(value,fallback="Пользователь"){const text=String(value||"").trim().replace(/[<>]/g,"");return(text||fallback).slice(0,60);}
+function cleanBio(value){return String(value||"").trim().replace(/[<>]/g,"").slice(0,500);}
+function validAvatarDataUrl(value){if(value==="")return true;return /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(String(value||""))&&String(value).length<=350000;}
+function isBlockedBetween(userA,userB){return Boolean((userA.blockedUserIds||[]).includes(userB.id)||(userB.blockedUserIds||[]).includes(userA.id));}
+function directContactExists(userA,userB){return readJson(CONTACTS_FILE).some(item=>item.userId===userA.id&&item.contactUserId===userB.id);}
+function scopeAllows(scope,viewer,owner){if(viewer.id===owner.id)return true;if(scope==="everyone")return true;if(scope==="nobody")return false;return directContactExists(owner,viewer);}
+function profileForViewer(owner,viewer){const own=owner.id===viewer.id;const allowed=own||(!isBlockedBetween(owner,viewer)&&scopeAllows(privacyDefaults(owner.privacy).profileVisibility,viewer,owner));if(!allowed)return{id:owner.id,displayName:owner.displayName||owner.nickname,avatarDataUrl:owner.avatarDataUrl||"",profileHidden:true};return{id:owner.id,fibroId:owner.fibroId,displayName:owner.displayName||owner.nickname,nickname:owner.nickname,bio:owner.bio||"",avatarDataUrl:owner.avatarDataUrl||"",role:owner.role,createdAt:owner.createdAt,status:owner.status,online:isOnline(owner.id),profileHidden:false};}
+
 function contactKey(userId,contactUserId){return `${userId}:${contactUserId}`;}
 function ensureContactPair(userA,userB,source="fibro_id"){
   if(!userA||!userB||userA===userB)return false;
@@ -242,15 +257,17 @@ function visibleContactIds(user,users,messages,contacts,network){
   ids.delete(user.id);return ids;
 }
 function canContact(user,recipientId){
-  const users=readJson(USERS_FILE);const network=readObject(NETWORK_FILE,{});
-  return visibleContactIds(user,users,readJson(MESSAGES_FILE),readJson(CONTACTS_FILE),network).has(recipientId);
+  const users=readJson(USERS_FILE);const target=users.find(item=>item.id===recipientId);if(!target||isBlockedBetween(user,target))return false;
+  const network=readObject(NETWORK_FILE,{});const visible=visibleContactIds(user,users,readJson(MESSAGES_FILE),readJson(CONTACTS_FILE),network).has(recipientId);
+  if(visible)return true;
+  return scopeAllows(privacyDefaults(target.privacy).firstMessage,user,target);
 }
 function requireAuth(req,res){const auth=getSessionUser(req);if(!auth){sendJson(res,401,{ok:false,error:"Требуется вход"});return null;}return auth;}
 function requireActive(req,res){const auth=requireAuth(req,res);if(!auth)return null;const expired=auth.user.subscriptionEndsAt&&new Date(auth.user.subscriptionEndsAt).getTime()<=Date.now();if(auth.user.status!=="active"||expired){sendJson(res,403,{ok:false,error:expired?"Срок подписки истёк":"Аккаунт ещё не подтверждён"});return null;}return auth;}
 function requireAdmin(req,res){const auth=requireAuth(req,res);if(!auth)return null;if(!["admin","super_admin"].includes(auth.user.role)){sendJson(res,403,{ok:false,error:"Недостаточно прав"});return null;}return auth;}
 function requireHead(req,res){const auth=requireAuth(req,res);if(!auth)return null;if(auth.user.role!=="super_admin"){sendJson(res,403,{ok:false,error:"Это действие может выполнить только головное устройство"});return null;}const network=readObject(NETWORK_FILE,{});if(network.headUserId&&network.headUserId!==auth.user.id){sendJson(res,403,{ok:false,error:"Аккаунт не является владельцем головного узла"});return null;}return auth;}
 function resolveClientFile(pathname){const requested=pathname==="/"?"/index.html":pathname;const normalized=path.normalize(decodeURIComponent(requested)).replace(/^([/\\])+/,'');const absolute=path.resolve(CLIENT_DIR,normalized);return absolute.startsWith(CLIENT_DIR+path.sep)||absolute===CLIENT_DIR?absolute:null;}
-function serveStatic(res,pathname){const filePath=resolveClientFile(pathname);if(!filePath){res.writeHead(403,{"Content-Type":"text/plain; charset=utf-8"});return res.end("Доступ запрещён");}fs.stat(filePath,(error,stats)=>{if(error||!stats.isFile()){res.writeHead(404,{"Content-Type":"text/plain; charset=utf-8"});return res.end("Файл не найден");}const ext=path.extname(filePath).toLowerCase();res.writeHead(200,{"Content-Type":MIME_TYPES[ext]||"application/octet-stream","Cache-Control":ext===".html"?"no-store":"public, max-age=60","X-Content-Type-Options":"nosniff","X-Frame-Options":"DENY","Referrer-Policy":"no-referrer"});fs.createReadStream(filePath).pipe(res);});}
+function serveStatic(res,pathname){const filePath=resolveClientFile(pathname);if(!filePath){res.writeHead(403,{"Content-Type":"text/plain; charset=utf-8"});return res.end("Доступ запрещён");}fs.stat(filePath,(error,stats)=>{if(error||!stats.isFile()){res.writeHead(404,{"Content-Type":"text/plain; charset=utf-8"});return res.end("Файл не найден");}const ext=path.extname(filePath).toLowerCase();res.writeHead(200,{"Content-Type":MIME_TYPES[ext]||"application/octet-stream","Cache-Control":[".html",".js",".css"].includes(ext)?"no-store":"public, max-age=300","X-Content-Type-Options":"nosniff","X-Frame-Options":"DENY","Referrer-Policy":"no-referrer"});fs.createReadStream(filePath).pipe(res);});}
 function isOnline(userId){return Date.now()-(presence.get(userId)||0)<ONLINE_TTL_MS;}
 function validPublicJwk(jwk, expectedUse) {
   if (!jwk || typeof jwk !== "object") return false;
@@ -315,7 +332,7 @@ async function handleApi(req,res,pathname,searchParams){
     if(!validPublicJwk(body.encryptionPublicKey,"deriveKey")||!validPublicJwk(body.signingPublicKey,"verify"))return sendJson(res,400,{ok:false,error:"Некорректные публичные ключи устройства"}),true;
     const users=readJson(USERS_FILE);if(users.some(x=>x.nickname.toLowerCase()===nickname.toLowerCase()))return sendJson(res,409,{ok:false,error:"Такой никнейм уже занят"}),true;
     let role="user",status="pending",invitedBy=null,usedInvite=null;if(inviteCode===OWNER_INVITE&&!users.some(x=>x.role==="super_admin")){role="super_admin";status="active";}else{const invites=readJson(INVITES_FILE);const invite=invites.find(x=>x.code===inviteCode&&!x.usedAt&&new Date(x.expiresAt).getTime()>Date.now());if(!invite)return sendJson(res,400,{ok:false,error:"Инвайт недействителен или уже использован"}),true;role=invite.role||"user";invitedBy=invite.createdBy||null;usedInvite=invite;invite.usedAt=new Date().toISOString();invite.usedByNickname=nickname;writeJson(INVITES_FILE,invites);}
-    const credentials=hashPassword(password);const now=new Date();const user={id:crypto.randomUUID(),fibroId:createFibroId(users),nickname,passwordSalt:credentials.salt,passwordHash:credentials.hash,role,status,invitedBy,createdAt:now.toISOString(),approvedAt:status==="active"?now.toISOString():null,approvedBy:status==="active"?"self-bootstrap":null,subscriptionEndsAt:status==="active"?new Date(now.getTime()+SUBSCRIPTION_DAYS*86400000).toISOString():null,encryptionPublicKey:body.encryptionPublicKey,signingPublicKey:body.signingPublicKey,keyCreatedAt:now.toISOString()};users.push(user);if(usedInvite){usedInvite.usedByUserId=user.id;writeJson(INVITES_FILE,readJson(INVITES_FILE).map(item=>item.id===usedInvite.id?usedInvite:item));}writeJson(USERS_FILE,users);if(role==="super_admin"){const network=readObject(NETWORK_FILE,{});network.headUserId=user.id;network.headNickname=user.nickname;network.activatedAt=now.toISOString();writeObject(NETWORK_FILE,network);}const device=createTrustedDevice(user.id,deviceId,deviceName,"registration");audit("USER_REGISTERED",user.id,user.id,{role,status});audit("DEVICE_TRUSTED",user.id,device.id,{name:device.name,source:"registration"});const session=createSession(user.id,device.id);sendJson(res,201,{ok:true,...session,user:publicUser(user),device:publicDevice(device,device.id)});return true;
+    const credentials=hashPassword(password);const now=new Date();const user={id:crypto.randomUUID(),fibroId:createFibroId(users),nickname,passwordSalt:credentials.salt,passwordHash:credentials.hash,role,status,invitedBy,createdAt:now.toISOString(),approvedAt:status==="active"?now.toISOString():null,approvedBy:status==="active"?"self-bootstrap":null,subscriptionEndsAt:status==="active"?new Date(now.getTime()+SUBSCRIPTION_DAYS*86400000).toISOString():null,encryptionPublicKey:body.encryptionPublicKey,signingPublicKey:body.signingPublicKey,keyCreatedAt:now.toISOString(),displayName:nickname,bio:"",avatarDataUrl:"",blockedUserIds:[],privacy:privacyDefaults({})};users.push(user);if(usedInvite){usedInvite.usedByUserId=user.id;writeJson(INVITES_FILE,readJson(INVITES_FILE).map(item=>item.id===usedInvite.id?usedInvite:item));}writeJson(USERS_FILE,users);if(role==="super_admin"){const network=readObject(NETWORK_FILE,{});network.headUserId=user.id;network.headNickname=user.nickname;network.activatedAt=now.toISOString();writeObject(NETWORK_FILE,network);}const device=createTrustedDevice(user.id,deviceId,deviceName,"registration");audit("USER_REGISTERED",user.id,user.id,{role,status});audit("DEVICE_TRUSTED",user.id,device.id,{name:device.name,source:"registration"});const session=createSession(user.id,device.id);sendJson(res,201,{ok:true,...session,user:publicUser(user),device:publicDevice(device,device.id)});return true;
   }
   if(pathname==="/api/login"&&req.method==="POST"){
     const body=await readBody(req);const nickname=String(body.nickname||"").trim();const password=String(body.password||"");const deviceId=String(body.deviceId||"");const deviceName=cleanDeviceName(body.deviceName);
@@ -335,6 +352,12 @@ async function handleApi(req,res,pathname,searchParams){
   if(pathname==="/api/logout"&&req.method==="POST"){const auth=requireAuth(req,res);if(!auth)return true;revokeSession(auth.session.id,"logout");presence.delete(auth.user.id);audit("SESSION_LOGOUT",auth.user.id,auth.session.id,{deviceId:auth.device.id});sendJson(res,200,{ok:true});return true;}
   if(pathname==="/api/logout-all"&&req.method==="POST"){const auth=requireAuth(req,res);if(!auth)return true;revokeUserSessions(auth.user.id,"logout_all");presence.delete(auth.user.id);audit("ALL_SESSIONS_REVOKED",auth.user.id,auth.user.id,{deviceId:auth.device.id});sendJson(res,200,{ok:true});return true;}
   if(pathname==="/api/me"&&req.method==="GET"){const auth=requireAuth(req,res);if(!auth)return true;sendJson(res,200,{ok:true,user:publicUser(auth.user),device:publicDevice(auth.device,auth.device.id)});return true;}
+  if(pathname==="/api/profile"&&req.method==="GET"){const auth=requireAuth(req,res);if(!auth)return true;const base=String(req.headers["x-forwarded-proto"]||"http").split(",")[0]+"://"+String(req.headers["x-forwarded-host"]||req.headers.host||"localhost");const inviteUrl=`${base.replace(/\/$/,"")}/?add=${encodeURIComponent(auth.user.fibroId)}`;const qrDataUrl=await QRCode.toDataURL(auth.user.fibroId,{width:320,margin:2,errorCorrectionLevel:"M"});sendJson(res,200,{ok:true,profile:publicUser(auth.user),inviteUrl,qrDataUrl});return true;}
+  if(pathname==="/api/profile"&&req.method==="PUT"){const auth=requireAuth(req,res);if(!auth)return true;const body=await readBody(req);const users=readJson(USERS_FILE);const user=users.find(item=>item.id===auth.user.id);if(!user)return sendJson(res,404,{ok:false,error:"Пользователь не найден"}),true;if(body.avatarDataUrl!==undefined&&!validAvatarDataUrl(body.avatarDataUrl))return sendJson(res,400,{ok:false,error:"Аватар должен быть PNG, JPEG или WebP размером до 250 КБ"}),true;user.displayName=cleanDisplayName(body.displayName,user.nickname);user.bio=cleanBio(body.bio);if(body.avatarDataUrl!==undefined)user.avatarDataUrl=String(body.avatarDataUrl||"");user.privacy=privacyDefaults(body.privacy||user.privacy);writeJson(USERS_FILE,users);audit("PROFILE_UPDATED",user.id,user.id,{privacy:user.privacy,avatar:Boolean(user.avatarDataUrl)});sendJson(res,200,{ok:true,user:publicUser(user)});return true;}
+  const profileMatch=pathname.match(/^\/api\/profiles\/([0-9a-f-]+)$/i);if(profileMatch&&req.method==="GET"){const auth=requireAuth(req,res);if(!auth)return true;const target=readJson(USERS_FILE).find(item=>item.id===profileMatch[1]);if(!target)return sendJson(res,404,{ok:false,error:"Профиль не найден"}),true;sendJson(res,200,{ok:true,profile:profileForViewer(target,auth.user)});return true;}
+  if(pathname==="/api/blocked"&&req.method==="GET"){const auth=requireAuth(req,res);if(!auth)return true;const users=readJson(USERS_FILE);const blocked=(auth.user.blockedUserIds||[]).map(id=>users.find(item=>item.id===id)).filter(Boolean).map(item=>profileForViewer(item,auth.user));sendJson(res,200,{ok:true,blocked});return true;}
+  const contactActionMatch=pathname.match(/^\/api\/contacts\/([0-9a-f-]+)\/(delete|block|unblock)$/i);if(contactActionMatch&&req.method==="POST"){const auth=requireAuth(req,res);if(!auth)return true;const targetId=contactActionMatch[1],action=contactActionMatch[2];const users=readJson(USERS_FILE);const user=users.find(item=>item.id===auth.user.id);const target=users.find(item=>item.id===targetId);if(!target||target.id===user.id)return sendJson(res,404,{ok:false,error:"Контакт не найден"}),true;if(action==="delete"||action==="block"){const contacts=readJson(CONTACTS_FILE).filter(item=>!((item.userId===user.id&&item.contactUserId===targetId)||(item.userId===targetId&&item.contactUserId===user.id)));writeJson(CONTACTS_FILE,contacts);}if(action==="block"&&!user.blockedUserIds.includes(targetId))user.blockedUserIds.push(targetId);if(action==="unblock")user.blockedUserIds=user.blockedUserIds.filter(id=>id!==targetId);writeJson(USERS_FILE,users);audit(`CONTACT_${action.toUpperCase()}`,user.id,targetId,{});sendJson(res,200,{ok:true});return true;}
+
   if(pathname==="/api/account/password"&&req.method==="POST"){
     const auth=requireAuth(req,res);if(!auth)return true;const body=await readBody(req);
     const currentPassword=String(body.currentPassword||"");const newPassword=String(body.newPassword||"");
@@ -378,11 +401,11 @@ async function handleApi(req,res,pathname,searchParams){
     const auth=requireActive(req,res);if(!auth)return true;
     const users=readJson(USERS_FILE),messages=readJson(MESSAGES_FILE),network=readObject(NETWORK_FILE,{}),saved=readJson(CONTACTS_FILE);
     const visible=visibleContactIds(auth.user,users,messages,saved,network);
-    const contacts=users.filter(u=>visible.has(u.id)&&u.status==="active"&&u.encryptionPublicKey&&u.signingPublicKey).map(u=>{
+    const contacts=users.filter(u=>visible.has(u.id)&&u.status==="active"&&u.encryptionPublicKey&&u.signingPublicKey&&!isBlockedBetween(auth.user,u)).map(u=>{
       const related=messages.filter(m=>(m.senderId===auth.user.id&&m.recipientId===u.id)||(m.senderId===u.id&&m.recipientId===auth.user.id));
       const last=related.reduce((latest,m)=>!latest||new Date(m.createdAt)>new Date(latest.createdAt)?m:latest,null);
       const unreadCount=related.filter(m=>m.senderId===u.id&&m.recipientId===auth.user.id&&!m.readAt).length;
-      return {...publicUser(u),online:isOnline(u.id),unreadCount,lastMessageAt:last?.createdAt||null};
+      return {...publicUser(u),...profileForViewer(u,auth.user),online:isOnline(u.id),unreadCount,lastMessageAt:last?.createdAt||null};
     }).sort((a,b)=>{if(a.unreadCount!==b.unreadCount)return b.unreadCount-a.unreadCount;if(a.lastMessageAt&&b.lastMessageAt)return new Date(b.lastMessageAt)-new Date(a.lastMessageAt);if(a.lastMessageAt)return -1;if(b.lastMessageAt)return 1;return a.nickname.localeCompare(b.nickname,"ru");});
     sendJson(res,200,{ok:true,contacts});return true;
   }
@@ -391,6 +414,8 @@ async function handleApi(req,res,pathname,searchParams){
     if(!/^FIBRO-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(fibroId))return sendJson(res,400,{ok:false,error:"Введите полный Fibro ID в формате FIBRO-XXXX-XXXX-XXXX"}),true;
     const target=readJson(USERS_FILE).find(user=>normalizeFibroId(user.fibroId)===fibroId&&user.status==="active");
     if(!target||target.id===auth.user.id)return sendJson(res,404,{ok:false,error:"Пользователь с таким Fibro ID не найден"}),true;
+    if(isBlockedBetween(auth.user,target))return sendJson(res,403,{ok:false,error:"Добавление контакта недоступно"}),true;
+    const targetPrivacy=privacyDefaults(target.privacy);if(!scopeAllows(targetPrivacy.fibroIdDiscovery,auth.user,target)||!scopeAllows(targetPrivacy.contactInvites,auth.user,target))return sendJson(res,403,{ok:false,error:"Пользователь запретил добавление по Fibro ID"}),true;
     if(!target.encryptionPublicKey||!target.signingPublicKey)return sendJson(res,409,{ok:false,error:"Пользователь ещё не настроил ключи"}),true;
     ensureContactPair(auth.user.id,target.id,"fibro_id");audit("CONTACT_ADDED_BY_FIBRO_ID",auth.user.id,target.id,{});
     notify(target.id,"CONTACT_ADDED","Новый контакт",`${auth.user.nickname} добавил вас по Fibro ID.`,{userId:auth.user.id});

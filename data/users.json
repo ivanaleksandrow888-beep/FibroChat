@@ -27,7 +27,18 @@
       "x": "7rHvGI0lc3cyMQEuTKTfl_UJaGef-Q02HVtGQoHsdoo",
       "y": "6mr9YBwH-paUdKZrKIDq7R_lN8W4-SQZYQbs9hLal6k"
     },
-    "keyCreatedAt": "2026-07-12T12:11:39.818Z"
+    "keyCreatedAt": "2026-07-12T12:11:39.818Z",
+    "fibroId": "FIBRO-17B8-EBCA-82FC",
+    "displayName": "Bob",
+    "bio": "",
+    "avatarDataUrl": "",
+    "blockedUserIds": [],
+    "privacy": {
+      "profileVisibility": "contacts",
+      "firstMessage": "contacts",
+      "fibroIdDiscovery": "everyone",
+      "contactInvites": "everyone"
+    }
   },
   {
     "id": "ed025267-463b-4ca4-ae57-0df5e78d1d8c",
@@ -57,6 +68,17 @@
       "x": "iJH1wLMvpheP50vWfCHhj_NKBWr9eJQYS6gfy6HanFU",
       "y": "RKdjg0B64o78DeKbUWHb-Hu8w17nl5t_psl2Eaq0uDU"
     },
-    "keyCreatedAt": "2026-07-12T12:12:23.740Z"
+    "keyCreatedAt": "2026-07-12T12:12:23.740Z",
+    "fibroId": "FIBRO-2BF5-B048-58F1",
+    "displayName": "tim",
+    "bio": "",
+    "avatarDataUrl": "",
+    "blockedUserIds": [],
+    "privacy": {
+      "profileVisibility": "contacts",
+      "firstMessage": "contacts",
+      "fibroIdDiscovery": "everyone",
+      "contactInvites": "everyone"
+    }
   }
 ]

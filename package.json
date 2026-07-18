@@ -1,8 +1,8 @@
 {
   "name": "fibrochat",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "private": true,
-  "description": "FibroChat v0.5.1 Private Contacts and unique Fibro ID",
+  "description": "FibroChat v0.5.2 Profile and Privacy",
   "scripts": {
     "start": "node server/server.js",
     "check": "node --check server/server.js && node --check server/application.js && node --check server/storage/store.js && node --check client/ui-shell.js && node --check client/app.js && node --check client/sw.js",
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "pg": "^8.22.0",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "qrcode": "^1.5.4"
   }
 }

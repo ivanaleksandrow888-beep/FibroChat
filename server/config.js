@@ -14,6 +14,6 @@ module.exports = Object.freeze({
   MIGRATE_LEGACY_JSON: String(process.env.MIGRATE_LEGACY_JSON || "false").toLowerCase() === "true",
   NODE_ID: String(process.env.FIBRO_NODE_ID || "").trim(),
   NODE_REGION: String(process.env.FIBRO_NODE_REGION || "unknown").trim(),
-  APP_VERSION: "0.5.1",
+  APP_VERSION: "0.5.2",
   PROTOCOL_VERSION: "1.1"
 });

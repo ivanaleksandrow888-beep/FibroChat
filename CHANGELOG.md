@@ -56,3 +56,14 @@
 - Keeps the decrypted identity bundle in sessionStorage so a normal page refresh no longer logs the user out.
 - PIN vault now stores the original JWK identity bundle and restores it after browser restart.
 - Updated package-lock.json and verified `npm ci` plus syntax checks.
+
+## 0.5.2 — Profile & Privacy
+
+- Добавлена полноценная страница профиля.
+- Добавлены аватар, отображаемое имя и описание.
+- Добавлены QR-код Fibro ID и ссылка-приглашение.
+- Добавлены четыре настройки приватности.
+- Добавлены удаление, блокировка и разблокировка контактов.
+- Добавлен список заблокированных пользователей.
+- Добавлены серверные проверки приватности и взаимной блокировки.
+- Добавлена миграция `004_profile_privacy.sql`.

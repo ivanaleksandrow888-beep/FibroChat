@@ -15,7 +15,7 @@
 <body>
   <main class="shell">
     <section id="auth-view" class="card auth-card">
-      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>Persistent Session v0.5.0</p></div></div>
+      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>Private Contacts v0.5.1</p></div></div>
       <div class="node-line"><span id="node-dot" class="dot"></span><span id="node-text">Проверка головного узла…</span></div>
       <div class="tabs"><button id="register-tab" class="tab active" type="button">Регистрация</button><button id="login-tab" class="tab" type="button">Вход</button></div>
       <form id="auth-form">
@@ -56,7 +56,7 @@
           <div class="brand"><div class="logo small">F</div><div><h2>FibroChat</h2><p id="current-role">Пользователь</p></div></div>
           <button id="logout-button" class="ghost" type="button">Выйти</button>
         </header>
-        <div class="me-card"><strong id="profile-nickname">—</strong><span id="profile-status">—</span><small id="profile-subscription">—</small><div class="subscription-meter"><span id="subscription-meter-bar"></span></div></div>
+        <div class="me-card"><strong id="profile-nickname">—</strong><div class="fibro-id-line"><code id="profile-fibro-id">—</code><button id="copy-fibro-id" class="mini-button" type="button">Копировать</button></div><span id="profile-status">—</span><small id="profile-subscription">—</small><div class="subscription-meter"><span id="subscription-meter-bar"></span></div></div>
         <section class="service-panel device-panel">
           <div class="section-head"><div><h3>Доверенные устройства</h3><p id="device-summary">Загрузка…</p></div><button id="refresh-devices" class="icon-button" type="button">↻</button></div>
           <div id="devices-list" class="devices-list"><p class="muted">Загрузка…</p></div>
@@ -92,8 +92,8 @@
           <p id="support-message" class="message"></p>
           <div id="support-list" class="support-list"><p class="muted">Обращений пока нет.</p></div>
         </section>
-        <div class="section-head"><div><h3>Контакты</h3><p>Активные пользователи сети</p></div><button id="refresh-contacts" class="icon-button" type="button">↻</button></div>
-        <div id="contacts-list" class="contacts-list"><p class="muted">Загрузка…</p></div>
+        <div class="section-head"><div><h3>Контакты</h3><p>Только связанные с вами пользователи</p></div><button id="refresh-contacts" class="icon-button" type="button">↻</button></div>
+        <div class="contact-add-box"><input id="contact-fibro-id" maxlength="23" autocomplete="off" placeholder="FIBRO-XXXX-XXXX-XXXX"><button id="add-contact" class="mini-button" type="button">Добавить</button><p id="contact-add-message" class="message"></p></div><div id="contacts-list" class="contacts-list"><p class="muted">Загрузка…</p></div>
         <section id="admin-panel" class="admin hidden">
           <div class="section-head"><div><h3>Головной узел</h3><p id="network-status">Загрузка состояния сети…</p></div></div>
           <div id="dashboard-summary" class="dashboard-grid"></div>
@@ -130,7 +130,7 @@
       <section class="chat card">
         <div id="empty-chat" class="empty-chat"><div class="empty-icon">✦</div><h2>Первый контакт</h2><p>Выбери пользователя слева, чтобы открыть диалог.</p></div>
         <div id="chat-view" class="chat-view hidden">
-          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.5.0</span></header>
+          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.5.1</span></header>
           <div id="messages-list" class="messages-list"></div>
           <form id="message-form" class="composer"><textarea id="message-input" rows="1" maxlength="4000" placeholder="Написать сообщение…"></textarea><div class="composer-actions"><span id="char-counter" class="char-counter">0/4000</span><button id="send-button" class="send-button" type="submit" disabled>Отправить</button></div></form>
           <p id="chat-error" class="message"></p>
@@ -138,7 +138,7 @@
       </section>
     </section>
   </main>
-  <script src="ui-shell.js?v=0.5.0"></script>
-  <script src="app.js?v=0.5.0"></script>
+  <script src="ui-shell.js?v=0.5.1"></script>
+  <script src="app.js?v=0.5.1"></script>
 </body>
 </html>

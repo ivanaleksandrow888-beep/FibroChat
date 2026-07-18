@@ -10,6 +10,7 @@
   const profile=oldSidebar.querySelector(".me-card");
   const contactsHead=[...oldSidebar.querySelectorAll(".section-head")].find(x=>x.querySelector("#refresh-contacts"));
   const contacts=oldSidebar.querySelector("#contacts-list");
+  const contactAdd=oldSidebar.querySelector(".contact-add-box");
   const devicePanel=oldSidebar.querySelector(".device-panel");
   const notificationPanel=[...oldSidebar.querySelectorAll(".service-panel")].find(x=>x.querySelector("#notifications-list"));
   const supportPanel=[...oldSidebar.querySelectorAll(".service-panel")].find(x=>x.querySelector("#support-list"));
@@ -34,6 +35,7 @@
   const chatsLayout=document.createElement("div");chatsLayout.className="chats-layout";
   const listPanel=document.createElement("aside");listPanel.className="conversation-panel card";
   if(contactsHead)listPanel.append(contactsHead);
+  if(contactAdd)listPanel.append(contactAdd);
   if(contacts)listPanel.append(contacts);
   chat.classList.add("chat-panel");
   chatsLayout.append(listPanel,chat);chatsPage.append(chatsLayout);

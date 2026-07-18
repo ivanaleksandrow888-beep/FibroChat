@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.5.0";
+const CLIENT_VERSION = "0.5.1";
 const CLIENT_PROTOCOL = "1.1";
 
 const state = {
@@ -28,8 +28,8 @@ const el = {
   authView: $("#auth-view"), appView: $("#app-view"), registerTab: $("#register-tab"), loginTab: $("#login-tab"),
   inviteField: $("#invite-field"), invite: $("#invite"), nickname: $("#nickname"), password: $("#password"), passwordConfirmField: $("#password-confirm-field"), passwordConfirm: $("#password-confirm"), deviceName: $("#device-name"),
   authForm: $("#auth-form"), submit: $("#submit-button"), authMessage: $("#auth-message"), nodeDot: $("#node-dot"), nodeText: $("#node-text"),
-  profileNickname: $("#profile-nickname"), profileStatus: $("#profile-status"), profileSubscription: $("#profile-subscription"), currentRole: $("#current-role"),
-  logout: $("#logout-button"), contactsList: $("#contacts-list"), refreshContacts: $("#refresh-contacts"),
+  profileNickname: $("#profile-nickname"), profileFibroId: $("#profile-fibro-id"), copyFibroId: $("#copy-fibro-id"), profileStatus: $("#profile-status"), profileSubscription: $("#profile-subscription"), currentRole: $("#current-role"),
+  logout: $("#logout-button"), contactsList: $("#contacts-list"), refreshContacts: $("#refresh-contacts"), contactFibroId: $("#contact-fibro-id"), addContact: $("#add-contact"), contactAddMessage: $("#contact-add-message"),
   emptyChat: $("#empty-chat"), chatView: $("#chat-view"), chatName: $("#chat-name"), chatPresence: $("#chat-presence"),
   messagesList: $("#messages-list"), messageForm: $("#message-form"), messageInput: $("#message-input"), sendButton: $("#send-button"), charCounter: $("#char-counter"), backToContacts: $("#back-to-contacts"), chatError: $("#chat-error"),
   adminPanel: $("#admin-panel"), createInvite: $("#create-invite"), inviteOutput: $("#invite-output"), usersList: $("#users-list"), dashboardSummary: $("#dashboard-summary"), networkStatus: $("#network-status"), auditList: $("#audit-list"),
@@ -490,7 +490,7 @@ async function checkHealth() {
 function showAuth(clearTokens = true) { clearInterval(state.pollingTimer); stopRealtime(); const previousUserId=state.user?.id||state.pendingRestoreUser?.id; if(clearTokens){clearSession();clearSessionIdentity(previousUserId);} state.user = null; state.identity = null; state.identityBundle = null; state.activeContact = null; el.appView.classList.add("hidden"); el.authView.classList.remove("hidden"); }
 function showApp(user) {
   state.user = user; localStorage.setItem("fibrochat_last_user_id",user.id); el.authView.classList.add("hidden"); el.appView.classList.remove("hidden");
-  el.profileNickname.textContent = user.nickname; el.profileStatus.textContent = `${statusName(user.status)} · ключи ${user.keysConfigured ? "настроены" : "не настроены"}`;
+  el.profileNickname.textContent = user.nickname; if(el.profileFibroId)el.profileFibroId.textContent=user.fibroId||"—"; el.profileStatus.textContent = `${statusName(user.status)} · ключи ${user.keysConfigured ? "настроены" : "не настроены"}`;
   const days = Number(user.subscriptionDaysRemaining || 0);
   el.profileSubscription.textContent = user.subscriptionState === "expired" ? "Подписка истекла — чат заблокирован" : `Подписка до ${dateText(user.subscriptionEndsAt)} · осталось ${days} дн.`;
   el.subscriptionMeterBar.style.width = `${Math.max(0, Math.min(100, (days / 30) * 100))}%`;
@@ -566,7 +566,7 @@ async function handleAuth(event) {
   } catch (error) { setAuthMessage(error.message); }
 }
 async function loadContacts(render = true) { try { const data = await api("/api/contacts", { method: "GET" }); state.contacts = data.contacts; if (state.activeContact) { state.activeContact = state.contacts.find((c) => c.id === state.activeContact.id) || null; if (state.activeContact) updateChatHeader(); } if (!render) return renderContacts(); renderContacts(); } catch (error) { el.contactsList.innerHTML = `<p class="message">${escapeHtml(error.message)}</p>`; } }
-function renderContacts() { el.contactsList.innerHTML = state.contacts.map((contact) => `<button class="contact ${state.activeContact?.id === contact.id ? "active" : ""}" data-contact-id="${contact.id}" type="button"><span class="contact-main"><span class="avatar">${escapeHtml(contact.nickname.slice(0,1).toUpperCase())}</span><span><strong>${escapeHtml(contact.nickname)}</strong><small>${contact.online ? "В сети" : "Не в сети"} · 🔒${contact.lastMessageAt ? ` · ${timeText(contact.lastMessageAt)}` : ""}</small></span></span><span class="contact-tail">${contact.unreadCount ? `<span class="unread-badge">${contact.unreadCount > 99 ? "99+" : contact.unreadCount}</span>` : ""}<span class="presence ${contact.online ? "online" : ""}"></span></span></button>`).join("") || '<p class="muted">Других активных пользователей с ключами пока нет.</p>'; }
+function renderContacts() { el.contactsList.innerHTML = state.contacts.map((contact) => `<button class="contact ${state.activeContact?.id === contact.id ? "active" : ""}" data-contact-id="${contact.id}" type="button"><span class="contact-main"><span class="avatar">${escapeHtml(contact.nickname.slice(0,1).toUpperCase())}</span><span><strong>${escapeHtml(contact.nickname)}</strong><small>${contact.online ? "В сети" : "Не в сети"} · 🔒${contact.lastMessageAt ? ` · ${timeText(contact.lastMessageAt)}` : ""}</small></span></span><span class="contact-tail">${contact.unreadCount ? `<span class="unread-badge">${contact.unreadCount > 99 ? "99+" : contact.unreadCount}</span>` : ""}<span class="presence ${contact.online ? "online" : ""}"></span></span></button>`).join("") || '<p class="muted">Контактов пока нет. Добавьте человека по его полному Fibro ID.</p>'; }
 function updateChatHeader() { if (!state.activeContact) return; el.chatName.textContent = state.activeContact.nickname; el.chatPresence.textContent = state.activeContact.online ? "В сети" : "Не в сети"; }
 async function openChat(contactId) { state.activeContact = state.contacts.find((contact) => contact.id === contactId) || null; if (!state.activeContact) return; renderContacts(); updateChatHeader(); el.emptyChat.classList.add("hidden"); el.chatView.classList.remove("hidden"); document.body.classList.add("chat-open"); await loadMessages(true); await loadContacts(false); el.messageInput.focus(); }
 async function loadMessages(scroll = false) {
@@ -714,6 +714,11 @@ el.networkProfileFile?.addEventListener("change",()=>importNetworkProfileFile(el
 el.saveNetworkSettings?.addEventListener("click",async()=>{el.networkSettingsMessage.textContent="Сохранение…";try{await api("/api/admin/network/settings",{method:"POST",body:JSON.stringify({networkName:el.networkNameInput.value,publicBaseUrl:el.networkUrlInput.value})});el.networkSettingsMessage.textContent="Настройки сети сохранены.";el.networkSettingsMessage.className="message success";await loadDashboard();await checkHealth();}catch(error){el.networkSettingsMessage.textContent=error.message;el.networkSettingsMessage.className="message";}});
 el.downloadNetworkProfile?.addEventListener("click",async()=>{el.networkSettingsMessage.textContent="Подготовка профиля…";try{await authenticatedDownload("/api/admin/network/profile",{method:"GET"},"fibrochat-network.fibronet.json");el.networkSettingsMessage.textContent="Профиль сети скачан.";el.networkSettingsMessage.className="message success";}catch(error){el.networkSettingsMessage.textContent=error.message;el.networkSettingsMessage.className="message";}});
 el.downloadNetworkBackup?.addEventListener("click",async()=>{const password=el.networkBackupPassword.value;if(password.length<12){el.networkBackupMessage.textContent="Введите пароль длиной минимум 12 символов.";return;}el.networkBackupMessage.textContent="Шифрование резервной копии…";try{await authenticatedDownload("/api/admin/network/backup",{method:"POST",body:JSON.stringify({password})},"fibrochat-network-backup.json");el.networkBackupPassword.value="";el.networkBackupMessage.textContent="Зашифрованная копия сети скачана.";el.networkBackupMessage.className="message success";}catch(error){el.networkBackupMessage.textContent=error.message;el.networkBackupMessage.className="message";}});
+
+
+el.copyFibroId?.addEventListener("click",async()=>{if(!state.user?.fibroId)return;try{await navigator.clipboard.writeText(state.user.fibroId);el.copyFibroId.textContent="Скопировано";setTimeout(()=>el.copyFibroId.textContent="Копировать",1200);}catch{prompt("Скопируйте Fibro ID",state.user.fibroId);}});
+el.addContact?.addEventListener("click",async()=>{const fibroId=String(el.contactFibroId?.value||"").trim();el.contactAddMessage.textContent="Добавление…";try{const data=await api("/api/contacts/add",{method:"POST",body:JSON.stringify({fibroId})});el.contactFibroId.value="";el.contactAddMessage.textContent=`${data.contact.nickname} добавлен в контакты.`;el.contactAddMessage.className="message success";await loadContacts();}catch(error){el.contactAddMessage.textContent=error.message;el.contactAddMessage.className="message";}});
+el.contactFibroId?.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();el.addContact?.click();}});
 
 el.createInvite.addEventListener("click", async () => { try { const data = await api("/api/admin/invites", { method: "POST", body: JSON.stringify({ validDays: 7 }) }); el.inviteOutput.textContent = data.invite.code; await loadAdmin(); } catch (error) { el.inviteOutput.textContent = error.message; } });
 el.usersList.addEventListener("click", async (event) => {

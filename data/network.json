@@ -1,21 +1,25 @@
 {
-  "nodeId": "fac604f9-0e03-45dc-893e-8619017f5727",
-  "networkId": "fibro-f91828f0",
+  "nodeId": "34f2c680-cc73-4f37-9be2-506eef9adbfa",
+  "networkId": "fibro-ea651df5",
   "protocolVersion": "1.1",
   "publicBaseUrl": "",
   "signingPrivateKey": {
     "kty": "EC",
-    "x": "VAVz2RsMVm7m6YeeymRihrPTpwN6QY0zJjZ5y-fFLho",
-    "y": "dTyeOPaC5poM1QVPYgHg5h8beSyeTG2FwNP2yyKBquU",
+    "x": "S3JaxTTsMPoVF0GSSilq69a5IAAyN_dPPUQUdlk1HMQ",
+    "y": "Toqk2a0zY0sVfHxjcLUWTTGnvtQQYJWm281xIRvaQpM",
     "crv": "P-256",
-    "d": "6LZOFNAn0HWJBN8gGbHqSXPu7LlSICrAbuyuJ2AwkX0"
+    "d": "c2vEqNiy1mbWCdl1v7OuXf3D8OthVN8NrMmfuFKttyw"
   },
   "signingPublicKey": {
     "kty": "EC",
-    "x": "VAVz2RsMVm7m6YeeymRihrPTpwN6QY0zJjZ5y-fFLho",
-    "y": "dTyeOPaC5poM1QVPYgHg5h8beSyeTG2FwNP2yyKBquU",
+    "x": "S3JaxTTsMPoVF0GSSilq69a5IAAyN_dPPUQUdlk1HMQ",
+    "y": "Toqk2a0zY0sVfHxjcLUWTTGnvtQQYJWm281xIRvaQpM",
     "crv": "P-256"
   },
-  "createdAt": "2026-07-13T14:38:16.129Z",
-  "networkName": "FibroChat Network"
+  "createdAt": "2026-07-18T09:59:06.681Z",
+  "networkName": "FibroChat Network",
+  "webPushVapid": {
+    "publicKey": "BB6BevE5h9sFXdQw3BbAdmMW5sH5ZQTeQLoxw_8ZNPCXWvrHBDVmonXTOAVcB11eUJFsLDAKcJDTYwbkTHPEsvk",
+    "privateKey": "Rek2JORsHcj2KAfWZzB3fJyZZyDD1GfoityZfXz43Kw"
+  }
 }

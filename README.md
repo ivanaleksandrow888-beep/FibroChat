@@ -1,12 +1,5 @@
-# FibroChat v0.5.0
+# FibroChat v0.5.1
 
-Защищённый мессенджер на Node.js, PostgreSQL, Docker и Coolify.
+Защищённый мессенджер с постоянными сессиями, PIN, доверенными устройствами, приватными контактами и уникальным Fibro ID.
 
-## Быстрая проверка
-```bash
-npm install
-npm run check
-npm start
-```
-
-Production требует `DATABASE_URL` и HTTPS. Полная документация: `docs/passport/00_START_HERE.md`.
+Начните с `docs/passport/00_START_HERE.md`.

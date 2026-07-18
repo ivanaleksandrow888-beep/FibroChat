@@ -1,7 +1,7 @@
 {
   "nodeId": "34f2c680-cc73-4f37-9be2-506eef9adbfa",
   "networkId": "fibro-ea651df5",
-  "protocolVersion": "1.1",
+  "protocolVersion": "1.2",
   "publicBaseUrl": "",
   "signingPrivateKey": {
     "kty": "EC",

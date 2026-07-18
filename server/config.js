@@ -9,11 +9,13 @@ module.exports = Object.freeze({
   ROOT_DIR,
   CLIENT_DIR: path.join(ROOT_DIR, "client"),
   DATA_DIR: path.join(ROOT_DIR, "data"),
+  ATTACHMENTS_DIR: path.join(ROOT_DIR, "data", "attachments"),
+  MAX_ATTACHMENT_BYTES: Math.max(1024, Number(process.env.MAX_ATTACHMENT_BYTES) || 10 * 1024 * 1024),
   DATABASE_URL: String(process.env.DATABASE_URL || "").trim(),
   DATABASE_SSL: String(process.env.DATABASE_SSL || "false").toLowerCase() === "true",
   MIGRATE_LEGACY_JSON: String(process.env.MIGRATE_LEGACY_JSON || "false").toLowerCase() === "true",
   NODE_ID: String(process.env.FIBRO_NODE_ID || "").trim(),
   NODE_REGION: String(process.env.FIBRO_NODE_REGION || "unknown").trim(),
-  APP_VERSION: "0.6.0",
-  PROTOCOL_VERSION: "1.1"
+  APP_VERSION: "0.7.0-alpha1",
+  PROTOCOL_VERSION: "1.2"
 });

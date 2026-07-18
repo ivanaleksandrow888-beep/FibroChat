@@ -1,7 +1,7 @@
 "use strict";
 
-const CLIENT_VERSION = "0.5.2";
-const CLIENT_PROTOCOL = "1.1";
+const CLIENT_VERSION = "0.7.0-alpha1";
+const CLIENT_PROTOCOL = "1.2";
 
 const state = {
   mode: "register",
@@ -23,7 +23,8 @@ const state = {
   pendingRestoreUser: null,
   identityBundle: null,
   profileData: null,
-  pendingAvatarDataUrl: undefined
+  pendingAvatarDataUrl: undefined,
+  pendingAttachment: null
 };
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -33,7 +34,7 @@ const el = {
   profileNickname: $("#profile-nickname"), profileFibroId: $("#profile-fibro-id"), copyFibroId: $("#copy-fibro-id"), profileStatus: $("#profile-status"), profileSubscription: $("#profile-subscription"), currentRole: $("#current-role"),
   logout: $("#logout-button"), contactsList: $("#contacts-list"), refreshContacts: $("#refresh-contacts"), contactFibroId: $("#contact-fibro-id"), addContact: $("#add-contact"), contactAddMessage: $("#contact-add-message"),
   emptyChat: $("#empty-chat"), chatView: $("#chat-view"), chatName: $("#chat-name"), chatPresence: $("#chat-presence"),
-  messagesList: $("#messages-list"), messageForm: $("#message-form"), messageInput: $("#message-input"), sendButton: $("#send-button"), charCounter: $("#char-counter"), backToContacts: $("#back-to-contacts"), chatError: $("#chat-error"),
+  messagesList: $("#messages-list"), messageForm: $("#message-form"), messageInput: $("#message-input"), sendButton: $("#send-button"), charCounter: $("#char-counter"), backToContacts: $("#back-to-contacts"), chatError: $("#chat-error"), attachmentInput: $("#attachment-input"), attachmentButton: $("#attachment-button"), attachmentPreview: $("#attachment-preview"),
   adminPanel: $("#admin-panel"), createInvite: $("#create-invite"), inviteOutput: $("#invite-output"), usersList: $("#users-list"), dashboardSummary: $("#dashboard-summary"), networkStatus: $("#network-status"), auditList: $("#audit-list"), securityActivityList: $("#security-activity-list"), invitesList: $("#invites-list"), inviteRole: $("#invite-role"), inviteDays: $("#invite-days"), adminUserSearch: $("#admin-user-search"), adminUserStatus: $("#admin-user-status"), adminUserRole: $("#admin-user-role"), adminUserRefresh: $("#admin-user-refresh"),
   subscriptionMeterBar: $("#subscription-meter-bar"), notificationCount: $("#notification-count"), notificationsList: $("#notifications-list"), refreshNotifications: $("#refresh-notifications"),
   supportForm: $("#support-form"), supportSubject: $("#support-subject"), supportText: $("#support-text"), supportMessage: $("#support-message"), supportList: $("#support-list"),
@@ -582,6 +583,11 @@ async function loadContacts(render = true) { try { const data = await api("/api/
 function renderContacts() { el.contactsList.innerHTML = state.contacts.map((contact) => `<div class="contact-wrap"><button class="contact ${state.activeContact?.id === contact.id ? "active" : ""}" data-contact-id="${contact.id}" type="button"><span class="contact-main">${avatarMarkup(contact)}<span><strong>${escapeHtml(contact.displayName||contact.nickname)}</strong><small>${contact.online ? "В сети" : "Не в сети"} · 🔒${contact.lastMessageAt ? ` · ${timeText(contact.lastMessageAt)}` : ""}</small></span></span><span class="contact-tail">${contact.unreadCount ? `<span class="unread-badge">${contact.unreadCount > 99 ? "99+" : contact.unreadCount}</span>` : ""}<span class="presence ${contact.online ? "online" : ""}"></span></span></button><div class="contact-actions"><button type="button" data-contact-action="delete" data-contact-target="${contact.id}">Удалить</button><button type="button" data-contact-action="block" data-contact-target="${contact.id}">Блок</button></div></div>`).join("") || '<p class="muted">Контактов пока нет. Добавьте человека по его полному Fibro ID.</p>'; }
 function updateChatHeader() { if (!state.activeContact) return; el.chatName.textContent = state.activeContact.displayName || state.activeContact.nickname; el.chatPresence.textContent = state.activeContact.online ? "В сети" : "Не в сети"; }
 async function openChat(contactId) { state.activeContact = state.contacts.find((contact) => contact.id === contactId) || null; if (!state.activeContact) return; renderContacts(); updateChatHeader(); el.emptyChat.classList.add("hidden"); el.chatView.classList.remove("hidden"); document.body.classList.add("chat-open"); await loadMessages(true); await loadContacts(false); el.messageInput.focus(); }
+function formatBytes(value){const bytes=Number(value)||0;if(bytes<1024)return `${bytes} Б`;if(bytes<1024*1024)return `${(bytes/1024).toFixed(1)} КБ`;return `${(bytes/1024/1024).toFixed(1)} МБ`;}
+function parseMessageContent(text){try{const value=JSON.parse(text);if(value&&value.version===1&&value.type==="attachment"&&value.attachment?.id)return value;}catch{}return{version:1,type:"text",text};}
+function renderPendingAttachment(){if(!el.attachmentPreview)return;const file=state.pendingAttachment;if(!file){el.attachmentPreview.classList.add("hidden");el.attachmentPreview.innerHTML="";return;}el.attachmentPreview.innerHTML=`<span>📎 ${escapeHtml(file.name)} · ${formatBytes(file.size)}</span><button type="button" data-remove-attachment aria-label="Убрать вложение">×</button>`;el.attachmentPreview.classList.remove("hidden");}
+async function encryptAndUploadAttachment(file,recipient){if(!file)throw new Error("Файл не выбран");const maxBytes=10*1024*1024;if(file.size>maxBytes)throw new Error("Максимальный размер вложения — 10 МБ");const key=await crypto.subtle.generateKey({name:"AES-GCM",length:256},true,["encrypt","decrypt"]);const iv=crypto.getRandomValues(new Uint8Array(12));const clear=await file.arrayBuffer();const encrypted=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,clear);const rawKey=await crypto.subtle.exportKey("raw",key);let response=await fetch(`/api/attachments?recipientId=${encodeURIComponent(recipient.id)}`,{method:"POST",headers:{Authorization:`Bearer ${state.token}`,"X-Fibro-Protocol":CLIENT_PROTOCOL,"Content-Type":"application/octet-stream","X-File-Name":encodeURIComponent(file.name),"X-Original-Size":String(file.size)},body:encrypted});if(response.status===401&&await refreshSession())response=await fetch(`/api/attachments?recipientId=${encodeURIComponent(recipient.id)}`,{method:"POST",headers:{Authorization:`Bearer ${state.token}`,"X-Fibro-Protocol":CLIENT_PROTOCOL,"Content-Type":"application/octet-stream","X-File-Name":encodeURIComponent(file.name),"X-Original-Size":String(file.size)},body:encrypted});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||"Не удалось загрузить вложение");return{id:data.attachment.id,name:file.name,mimeType:file.type||"application/octet-stream",size:file.size,iv:bytesToBase64(iv),key:bytesToBase64(rawKey),algorithm:"AES-256-GCM"};}
+async function downloadAttachment(button,attachment){button.disabled=true;const original=button.textContent;button.textContent="Загрузка…";try{let response=await fetch(`/api/attachments/${encodeURIComponent(attachment.id)}`,{headers:{Authorization:`Bearer ${state.token}`,"X-Fibro-Protocol":CLIENT_PROTOCOL},cache:"no-store"});if(response.status===401&&await refreshSession())response=await fetch(`/api/attachments/${encodeURIComponent(attachment.id)}`,{headers:{Authorization:`Bearer ${state.token}`,"X-Fibro-Protocol":CLIENT_PROTOCOL},cache:"no-store"});if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||"Не удалось скачать файл");}const encrypted=await response.arrayBuffer();const key=await crypto.subtle.importKey("raw",base64ToBytes(attachment.key),{name:"AES-GCM"},false,["decrypt"]);const clear=await crypto.subtle.decrypt({name:"AES-GCM",iv:base64ToBytes(attachment.iv)},key,encrypted);const blob=new Blob([clear],{type:attachment.mimeType||"application/octet-stream"});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=attachment.name||"attachment";document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}catch(error){setChatError(error.message);}finally{button.disabled=false;button.textContent=original;}}
 async function loadMessages(scroll = false) {
   if (!state.activeContact) return;
   try {
@@ -592,7 +598,9 @@ async function loadMessages(scroll = false) {
       const status = mine ? (message.readAt ? "Прочитано" : message.deliveredAt ? "Доставлено" : attempts > 1 ? `Повторная доставка · попытка ${attempts}` : "В очереди") : "";
       try {
         const text = await decryptMessage(message);
-        return `<article class="bubble ${mine ? "mine" : ""}"><p>${escapeHtml(text)}</p><div class="meta"><span class="lock-meta">🔒 Подпись проверена</span><span>${timeText(message.createdAt)}</span>${status ? `<span>${status}</span>` : ""}</div></article>`;
+        const content=parseMessageContent(text);
+        const body=content.type==="attachment"?`${content.text?`<p>${escapeHtml(content.text)}</p>`:""}<div class="attachment-card"><strong>📎 ${escapeHtml(content.attachment.name||"Файл")}</strong><small>${escapeHtml(content.attachment.mimeType||"application/octet-stream")} · ${formatBytes(content.attachment.size)}</small><button class="attachment-download" type="button" data-attachment='${escapeHtml(JSON.stringify(content.attachment))}'>Скачать и расшифровать</button></div>`:`<p>${escapeHtml(content.text||"")}</p>`;
+        return `<article class="bubble ${mine ? "mine" : ""}">${body}<div class="meta"><span class="lock-meta">🔒 Подпись проверена</span><span>${timeText(message.createdAt)}</span>${status ? `<span>${status}</span>` : ""}</div></article>`;
       } catch (error) {
         return `<article class="bubble error"><p>[Не удалось расшифровать сообщение]</p><div class="meta"><span>${escapeHtml(error.message)}</span></div></article>`;
       }
@@ -604,19 +612,13 @@ async function loadMessages(scroll = false) {
   } catch (error) { setChatError(error.message); }
 }
 async function sendMessage(event) {
-  event.preventDefault(); if (!state.activeContact) return; const text = el.messageInput.value.trim(); if (!text) return;
-  el.messageInput.disabled = true; el.sendButton.disabled = true; setChatError("");
-  try { const encrypted = await createEnvelope(text, state.activeContact); await api("/api/messages", { method: "POST", body: JSON.stringify({ recipientId: state.activeContact.id, ...encrypted }) }); el.messageInput.value = ""; updateComposer(); await loadMessages(true); await loadContacts(false); }
-  catch (error) { setChatError(error.message); }
-  finally { el.messageInput.disabled = false; updateComposer(); el.messageInput.focus(); }
+  event.preventDefault();if(!state.activeContact)return;const text=el.messageInput.value.trim();const file=state.pendingAttachment;if(!text&&!file)return;
+  el.messageInput.disabled=true;el.sendButton.disabled=true;if(el.attachmentButton)el.attachmentButton.disabled=true;setChatError("");
+  try{let clearText=text;if(file){const attachment=await encryptAndUploadAttachment(file,state.activeContact);clearText=JSON.stringify({version:1,type:"attachment",text,attachment});}const encrypted=await createEnvelope(clearText,state.activeContact);await api("/api/messages",{method:"POST",body:JSON.stringify({recipientId:state.activeContact.id,...encrypted})});el.messageInput.value="";state.pendingAttachment=null;if(el.attachmentInput)el.attachmentInput.value="";renderPendingAttachment();updateComposer();await loadMessages(true);await loadContacts(false);}
+  catch(error){setChatError(error.message);}
+  finally{el.messageInput.disabled=false;if(el.attachmentButton)el.attachmentButton.disabled=false;updateComposer();el.messageInput.focus();}
 }
-function updateComposer() {
-  const length = el.messageInput.value.length;
-  el.charCounter.textContent = `${length}/4000`;
-  el.sendButton.disabled = el.messageInput.disabled || length === 0 || !state.activeContact;
-  el.messageInput.style.height = "auto";
-  el.messageInput.style.height = `${Math.min(el.messageInput.scrollHeight, 140)}px`;
-}
+function updateComposer(){const length=el.messageInput.value.length;el.charCounter.textContent=`${length}/4000`;el.sendButton.disabled=el.messageInput.disabled||(!length&&!state.pendingAttachment)||!state.activeContact;el.messageInput.style.height="auto";el.messageInput.style.height=`${Math.min(el.messageInput.scrollHeight,140)}px`;}
 function closeMobileChat() { document.body.classList.remove("chat-open"); }
 
 
@@ -701,6 +703,10 @@ el.logoutAll.addEventListener("click", async()=>{if(!confirm("Завершить
 el.refreshContacts.addEventListener("click", () => loadContacts(true));
 el.contactsList.addEventListener("click", async (event) => { const action=event.target.closest("[data-contact-action]");if(action){event.stopPropagation();try{await contactAction(action.dataset.contactTarget,action.dataset.contactAction);}catch(error){alert(error.message);}return;} const button = event.target.closest("[data-contact-id]"); if (button) openChat(button.dataset.contactId); });
 el.messageForm.addEventListener("submit", sendMessage);
+if(el.attachmentButton)el.attachmentButton.addEventListener("click",()=>el.attachmentInput?.click());
+if(el.attachmentInput)el.attachmentInput.addEventListener("change",()=>{const file=el.attachmentInput.files?.[0]||null;if(file&&file.size>10*1024*1024){setChatError("Максимальный размер вложения — 10 МБ");el.attachmentInput.value="";state.pendingAttachment=null;}else{state.pendingAttachment=file;setChatError("");}renderPendingAttachment();updateComposer();});
+if(el.attachmentPreview)el.attachmentPreview.addEventListener("click",event=>{if(event.target.closest("[data-remove-attachment]")){state.pendingAttachment=null;el.attachmentInput.value="";renderPendingAttachment();updateComposer();}});
+if(el.messagesList)el.messagesList.addEventListener("click",event=>{const button=event.target.closest("[data-attachment]");if(!button)return;try{downloadAttachment(button,JSON.parse(button.dataset.attachment));}catch{setChatError("Некорректные данные вложения");}});
 el.messageInput.addEventListener("input", updateComposer);
 el.messageInput.addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); if (!el.sendButton.disabled) el.messageForm.requestSubmit(); } });
 el.backToContacts.addEventListener("click", closeMobileChat);

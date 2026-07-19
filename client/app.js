@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.7.0-alpha2";
+const CLIENT_VERSION = "0.7.0-alpha2.1";
 const CLIENT_PROTOCOL = "1.2";
 
 const state = {
@@ -794,5 +794,22 @@ registerFibroServiceWorker();
 setMode("register"); updateComposer(); checkHealth(); restoreSession();
 
 
-function syncVisualViewport(){const viewport=window.visualViewport;if(!viewport)return;document.documentElement.style.setProperty("--visual-viewport-height",`${viewport.height}px`);if(innerWidth<=800){document.querySelector(".shell")?.style.setProperty("height",`${viewport.height}px`);if(document.activeElement===el.messageInput)setTimeout(()=>el.messageInput.scrollIntoView({block:"nearest"}),40);}}
-if(window.visualViewport){window.visualViewport.addEventListener("resize",syncVisualViewport);window.visualViewport.addEventListener("scroll",syncVisualViewport);syncVisualViewport();}
+function syncVisualViewport(){
+  const viewport=window.visualViewport;
+  const height=viewport?viewport.height:window.innerHeight;
+  document.documentElement.style.setProperty("--app-height",`${Math.round(height)}px`);
+  if(viewport)document.documentElement.style.setProperty("--viewport-offset-top",`${Math.round(viewport.offsetTop)}px`);
+  if(innerWidth<=760&&document.body.classList.contains("chat-open")&&document.activeElement===el.messageInput){
+    requestAnimationFrame(()=>{
+      const distanceFromBottom=el.messagesList.scrollHeight-el.messagesList.scrollTop-el.messagesList.clientHeight;
+      if(distanceFromBottom<160)el.messagesList.scrollTop=el.messagesList.scrollHeight;
+    });
+  }
+}
+window.addEventListener("resize",syncVisualViewport,{passive:true});
+window.addEventListener("orientationchange",()=>setTimeout(syncVisualViewport,120),{passive:true});
+if(window.visualViewport){
+  window.visualViewport.addEventListener("resize",syncVisualViewport,{passive:true});
+  window.visualViewport.addEventListener("scroll",syncVisualViewport,{passive:true});
+}
+syncVisualViewport();

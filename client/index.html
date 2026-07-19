@@ -148,15 +148,26 @@
       <section class="chat card">
         <div id="empty-chat" class="empty-chat"><div class="empty-icon">✦</div><h2>Первый контакт</h2><p>Выбери пользователя слева, чтобы открыть диалог.</p></div>
         <div id="chat-view" class="chat-view hidden">
-          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.7.0-alpha1</span></header>
+          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.7.0-alpha2</span></header>
           <div id="messages-list" class="messages-list"></div>
-          <form id="message-form" class="composer"><div class="composer-main"><div id="attachment-preview" class="attachment-preview hidden"></div><textarea id="message-input" rows="1" maxlength="4000" placeholder="Написать сообщение…"></textarea></div><div class="composer-actions"><input id="attachment-input" class="hidden" type="file"><button id="attachment-button" class="attach-button" type="button" title="Прикрепить файл" aria-label="Прикрепить файл">📎</button><span id="char-counter" class="char-counter">0/4000</span><button id="send-button" class="send-button" type="submit" disabled>Отправить</button></div></form>
+          <form id="message-form" class="composer">
+            <div id="reply-preview" class="reply-preview hidden"></div>
+            <div id="attachment-preview" class="attachment-preview hidden"></div>
+            <div id="voice-preview" class="voice-preview hidden"></div>
+            <div class="composer-row">
+              <input id="attachment-input" class="hidden" type="file">
+              <button id="attachment-button" class="composer-icon" type="button" title="Прикрепить файл" aria-label="Прикрепить файл">📎</button>
+              <div class="composer-main"><textarea id="message-input" rows="1" maxlength="4000" placeholder="Написать сообщение…"></textarea><span id="char-counter" class="char-counter">0/4000</span></div>
+              <button id="voice-button" class="composer-icon voice-button" type="button" title="Записать голосовое сообщение" aria-label="Записать голосовое сообщение">🎙️</button>
+              <button id="send-button" class="send-button" type="submit" disabled><span class="send-label">Отправить</span><span class="send-icon">➤</span></button>
+            </div>
+          </form>
           <p id="chat-error" class="message"></p>
         </div>
       </section>
     </section>
   </main>
-  <script src="ui-shell.js?v=0.7.0-alpha1"></script>
-  <script src="app.js?v=0.7.0-alpha1"></script>
+  <script src="ui-shell.js?v=0.7.0-alpha2"></script>
+  <script src="app.js?v=0.7.0-alpha2"></script>
 </body>
 </html>

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0-alpha2
+
+- Added encrypted voice-message recording, preview, sending and playback.
+- Added replies with quoted previews and jump-to-original navigation.
+- Rebuilt the mobile composer for safe-area and virtual-keyboard compatibility.
+- Improved touch targets, attachment cards and narrow-screen layout.
+
+
 ## 0.7.0-alpha1
 
 - Добавлена инфраструктура E2E-зашифрованных файловых вложений.

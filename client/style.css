@@ -318,3 +318,63 @@ body{background:radial-gradient(circle at 8% 8%,rgba(79,70,229,.25),transparent 
 
 /* v0.7.0-alpha6.1 completion */
 .lock-meta svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8;vertical-align:-2px}.edited-meta{font-size:10px;opacity:.75}.group-members-list{display:grid;gap:8px;margin:14px 0}.group-member-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;border:1px solid var(--line,#304067);border-radius:14px}.group-member-row>span{display:flex;align-items:center;gap:9px;min-width:0}.group-member-row small{display:block;color:var(--muted,#9aa7c2)}.group-member-actions{justify-content:flex-end;flex-wrap:wrap}.group-member-actions select{width:auto;min-width:130px}.group-danger-zone{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px;padding-top:14px;border-top:1px solid var(--line,#304067)}
+
+/* Alpha 7.1: message actions never overlap message content. */
+.bubble{min-width:0;overflow:visible}
+.bubble p,.attachment-card,.voice-card,.reply-quote{overflow-wrap:anywhere;word-break:break-word}
+.message-actions,.bubble.mine .message-actions{
+  position:static;
+  inset:auto;
+  transform:none;
+  opacity:1;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:4px;
+  flex-wrap:wrap;
+  width:100%;
+  margin:7px 0 1px;
+  pointer-events:auto;
+}
+.message-actions .reply-button{
+  position:relative;
+  display:inline-flex;
+  width:auto;
+  min-width:34px;
+  height:32px;
+  padding:0 9px;
+  gap:5px;
+  flex:0 0 auto;
+}
+.message-actions .reply-button span{
+  position:static;
+  width:auto;
+  height:auto;
+  overflow:visible;
+  clip:auto;
+  white-space:nowrap;
+}
+.bubble:hover .message-actions,.bubble:focus-within .message-actions{transform:none}
+.meta{clear:both;max-width:100%;flex-wrap:wrap}
+
+/* Alpha 7.1 audio call surface. */
+.call-modal{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:20px;background:rgba(3,8,20,.76);backdrop-filter:blur(12px)}
+.call-modal.hidden{display:none}
+.call-card{width:min(390px,100%);padding:34px 26px 28px;border:1px solid rgba(151,166,210,.2);border-radius:28px;background:linear-gradient(160deg,rgba(25,37,68,.98),rgba(9,15,31,.98));box-shadow:0 30px 90px rgba(0,0,0,.48);text-align:center}
+.call-avatar{width:92px;height:92px;margin:0 auto 18px;border-radius:30px;display:grid;place-items:center;background:linear-gradient(145deg,#6d5dfc,#22b8cf);color:white;font-size:34px;font-weight:800;box-shadow:0 16px 45px rgba(68,88,220,.35)}
+.call-kicker{margin:0 0 7px;color:#99a8c9;font-size:12px;text-transform:uppercase;letter-spacing:.12em}
+.call-card h2{margin:0;font-size:25px}
+.call-status{min-height:22px;margin:10px 0 26px;color:#c4cee5}
+.call-controls{display:flex;align-items:center;justify-content:center;gap:18px}
+.call-control{width:58px;height:58px;border:0;border-radius:20px;display:grid;place-items:center;background:#263452;color:#fff;cursor:pointer;box-shadow:0 10px 25px rgba(0,0,0,.22)}
+.call-control svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.call-control.call-danger{background:#dc354f}
+.call-control.call-accept{background:#25a866}
+.call-control.muted{background:#7f1d2d}
+.call-control.hidden{display:none}
+@media(max-width:800px){
+  .message-actions{display:flex!important;opacity:1;margin-top:7px}
+  .message-actions .reply-button{font-size:11px;padding:0 7px;height:30px}
+  .call-modal{align-items:end;padding:12px}
+  .call-card{border-radius:26px;padding:28px 20px calc(26px + env(safe-area-inset-bottom))}
+}

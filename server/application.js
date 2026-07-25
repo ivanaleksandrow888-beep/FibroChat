@@ -46,7 +46,7 @@ const DEVICE_APPROVAL_TTL_MS = 5 * 60 * 1000;
 const APP_VERSION = config.APP_VERSION;
 const PROTOCOL_VERSION = config.PROTOCOL_VERSION;
 const MIN_CLIENT_PROTOCOL = "1.2";
-const PROTOCOL_CAPABILITIES = ["auth.session.v1","identity.keys.v1","messages.secure-envelope.v1","messages.delivery-queue.v1","events.sse-envelope.v1","subscriptions.v1","devices.trust.v1","network.profile.v1","contacts.private.v1","identity.fibro-id.v1","profile.v1","privacy.controls.v1","contacts.blocking.v1","identity.qr.v1","admin.security.v1","admin.sessions.v1","admin.activity.v1","admin.invites.v1","attachments.opaque.v1","messages.management.v1","messages.local-search.v1","groups.v1","groups.roles.v1","groups.encrypted-fanout.v1"];
+const PROTOCOL_CAPABILITIES = ["auth.session.v1","identity.keys.v1","messages.secure-envelope.v1","messages.delivery-queue.v1","events.sse-envelope.v1","subscriptions.v1","devices.trust.v1","network.profile.v1","contacts.private.v1","identity.fibro-id.v1","profile.v1","privacy.controls.v1","contacts.blocking.v1","identity.qr.v1","admin.security.v1","admin.sessions.v1","admin.activity.v1","admin.invites.v1","attachments.opaque.v1","messages.management.v1","messages.local-search.v1","groups.v1","groups.roles.v1","groups.encrypted-fanout.v1","calls.audio.webrtc.v1","calls.signaling.sse.v1"];
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -337,6 +337,16 @@ async function handleApi(req,res,pathname,searchParams){
   if(pathname==="/api/network/public"&&req.method==="GET"){const network=readObject(NETWORK_FILE,{});sendJson(res,200,{ok:true,network:publicNetwork(network,req)});return true;}
   if(pathname==="/api/network/profile"&&req.method==="GET"){sendDownloadJson(res,`${readObject(NETWORK_FILE,{}).networkId||"fibrochat"}.fibronet.json`,createNetworkProfile(req));return true;}
   if(pathname==="/api/events"&&req.method==="GET"){const auth=requireAuth(req,res);if(!auth)return true;openEventStream(req,res,auth);return true;}
+  if(pathname==="/api/calls/signal"&&req.method==="POST"){
+    const auth=requireAuth(req,res);if(!auth)return true;
+    const body=await readBody(req);const targetId=String(body.targetUserId||"");const kind=String(body.kind||"");
+    if(!["offer","answer","ice","reject","hangup","busy"].includes(kind))return sendJson(res,400,{ok:false,error:"Некорректный тип сигнала звонка"}),true;
+    const users=readJson(USERS_FILE);const target=users.find(x=>x.id===targetId);
+    if(!target||target.id===auth.user.id)return sendJson(res,404,{ok:false,error:"Пользователь для звонка не найден"}),true;
+    if(!directContactExists(auth.user,target)||isBlockedBetween(auth.user,target))return sendJson(res,403,{ok:false,error:"Звонки доступны только между контактами"}),true;
+    const signal={callId:String(body.callId||"").slice(0,120),kind,fromUserId:auth.user.id,fromUser:publicUser(auth.user),description:body.description||null,candidate:body.candidate||null,createdAt:new Date().toISOString()};
+    sendEvent(target.id,"call:signal",signal);audit(`CALL_${kind.toUpperCase()}`,auth.user.id,target.id,{callId:signal.callId});sendJson(res,200,{ok:true});return true;
+  }
   if(pathname==="/api/register"&&req.method==="POST"){
     const body=await readBody(req);const inviteCode=String(body.invite||"").trim();const nickname=String(body.nickname||"").trim();const password=String(body.password||"");const deviceId=String(body.deviceId||"");const deviceName=cleanDeviceName(body.deviceName);
     if(nickname.length<2||nickname.length>32)return sendJson(res,400,{ok:false,error:"Никнейм: от 2 до 32 символов"}),true;

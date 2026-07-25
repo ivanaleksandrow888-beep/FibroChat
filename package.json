@@ -1,8 +1,8 @@
 {
   "name": "fibrochat",
-  "version": "0.7.0-alpha6.1",
+  "version": "0.7.0-alpha7.1",
   "private": true,
-  "description": "FibroChat v0.7.0-alpha6.1 encrypted group chats and group roles",
+  "description": "FibroChat v0.7.0-alpha7.1 encrypted group chats and group roles",
   "scripts": {
     "start": "node server/server.js",
     "check": "node --check server/server.js && node --check server/application.js && node --check server/storage/store.js && node --check client/ui-shell.js && node --check client/app.js && node --check client/sw.js",

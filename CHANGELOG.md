@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0-alpha7.1
+- Аудиозвонки 1:1 через WebRTC и SSE-сигналинг.
+- Входящий/исходящий вызов, принять, отклонить, завершить, mute.
+- Исправлена раскладка действий сообщений: кнопки больше не перекрывают текст.
+
+
 ## 0.7.0-alpha2
 
 - Added encrypted voice-message recording, preview, sending and playback.

@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.7.0-alpha6.1";
+const CLIENT_VERSION = "0.7.0-alpha7.1";
 const CLIENT_PROTOCOL = "1.2";
 
 const state = {
@@ -35,7 +35,9 @@ const state = {
   pendingVoice: null,
   mediaRecorder: null,
   recordingStartedAt: 0,
-  recordingTimer: null
+  recordingTimer: null,
+  call: null,
+  pendingIncomingCall: null
 };
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -45,7 +47,7 @@ const el = {
   profileNickname: $("#profile-nickname"), profileFibroId: $("#profile-fibro-id"), copyFibroId: $("#copy-fibro-id"), profileStatus: $("#profile-status"), profileSubscription: $("#profile-subscription"), currentRole: $("#current-role"),
   logout: $("#logout-button"), contactsList: $("#contacts-list"), refreshContacts: $("#refresh-contacts"), contactFibroId: $("#contact-fibro-id"), addContact: $("#add-contact"), contactAddMessage: $("#contact-add-message"), groupsList: $("#groups-list"), createGroupButton: $("#create-group-button"), groupModal: $("#group-modal"), groupModalClose: $("#group-modal-close"), groupForm: $("#group-form"), groupName: $("#group-name"), groupDescription: $("#group-description"), groupMemberPicker: $("#group-member-picker"), groupFormMessage: $("#group-form-message"), groupSettingsButton: $("#group-settings-button"), groupSettingsModal: $("#group-settings-modal"), groupSettingsClose: $("#group-settings-close"), groupSettingsForm: $("#group-settings-form"), groupSettingsName: $("#group-settings-name"), groupSettingsDescription: $("#group-settings-description"), groupMembersList: $("#group-members-list"), groupAddMember: $("#group-add-member"), groupSettingsMessage: $("#group-settings-message"), groupLeaveButton: $("#group-leave-button"), groupDeleteButton: $("#group-delete-button"),
   emptyChat: $("#empty-chat"), chatView: $("#chat-view"), chatName: $("#chat-name"), chatPresence: $("#chat-presence"),
-  messagesList: $("#messages-list"), messageForm: $("#message-form"), messageInput: $("#message-input"), sendButton: $("#send-button"), charCounter: $("#char-counter"), backToContacts: $("#back-to-contacts"), chatError: $("#chat-error"), attachmentInput: $("#attachment-input"), attachmentButton: $("#attachment-button"), attachmentPreview: $("#attachment-preview"), replyPreview: $("#reply-preview"), editPreview: $("#edit-preview"), voicePreview: $("#voice-preview"), voiceButton: $("#voice-button"), chatSearch: $("#chat-search"), chatSearchInput: $("#chat-search-input"), chatSearchCount: $("#chat-search-count"), chatSearchToggle: $("#chat-search-toggle"), chatSearchClose: $("#chat-search-close"),
+  messagesList: $("#messages-list"), messageForm: $("#message-form"), messageInput: $("#message-input"), sendButton: $("#send-button"), charCounter: $("#char-counter"), backToContacts: $("#back-to-contacts"), chatError: $("#chat-error"), attachmentInput: $("#attachment-input"), attachmentButton: $("#attachment-button"), attachmentPreview: $("#attachment-preview"), replyPreview: $("#reply-preview"), editPreview: $("#edit-preview"), voicePreview: $("#voice-preview"), voiceButton: $("#voice-button"), chatSearch: $("#chat-search"), chatSearchInput: $("#chat-search-input"), chatSearchCount: $("#chat-search-count"), chatSearchToggle: $("#chat-search-toggle"), chatSearchClose: $("#chat-search-close"), callButton: $("#call-button"), callModal: $("#call-modal"), callAvatar: $("#call-avatar"), callKicker: $("#call-kicker"), callTitle: $("#call-title"), callStatus: $("#call-status"), callMute: $("#call-mute"), callDecline: $("#call-decline"), callAccept: $("#call-accept"), remoteCallAudio: $("#remote-call-audio"),
   adminPanel: $("#admin-panel"), createInvite: $("#create-invite"), inviteOutput: $("#invite-output"), usersList: $("#users-list"), dashboardSummary: $("#dashboard-summary"), networkStatus: $("#network-status"), auditList: $("#audit-list"), securityActivityList: $("#security-activity-list"), invitesList: $("#invites-list"), inviteRole: $("#invite-role"), inviteDays: $("#invite-days"), adminUserSearch: $("#admin-user-search"), adminUserStatus: $("#admin-user-status"), adminUserRole: $("#admin-user-role"), adminUserRefresh: $("#admin-user-refresh"),
   subscriptionMeterBar: $("#subscription-meter-bar"), notificationCount: $("#notification-count"), notificationsList: $("#notifications-list"), refreshNotifications: $("#refresh-notifications"),
   supportForm: $("#support-form"), supportSubject: $("#support-subject"), supportText: $("#support-text"), supportMessage: $("#support-message"), supportList: $("#support-list"),
@@ -250,6 +252,7 @@ function stopRealtime(){
 async function handleRealtimeEvent(type,payload){
   if(payload&&payload.protocol&&payload.payload!==undefined){type=payload.type||type;payload=payload.payload;}
   if(type==="connected"){state.realtimeConnected=true;el.nodeText.textContent=`Головной узел онлайн · v${CLIENT_VERSION} · протокол ${CLIENT_PROTOCOL} · связь в реальном времени`;return;}
+  if(type==="call:signal"){await handleCallSignal(payload);return;}
   if(["message:new","message:status","message:read","message:updated","message:deleted"].includes(type)){
     if(type==="message:new")showBrowserNotification("Новое сообщение в FibroChat",{body:"Получено новое зашифрованное сообщение.",tag:`message-${payload?.messageId||Date.now()}`});
     await loadContacts(false).catch(()=>null);
@@ -503,7 +506,7 @@ async function checkHealth() {
     el.nodeDot.classList.remove("online"); el.nodeText.textContent = "Головной узел недоступен";
   }
 }
-function showAuth(clearTokens = true) { clearInterval(state.pollingTimer); stopRealtime(); const previousUserId=state.user?.id||state.pendingRestoreUser?.id; if(clearTokens){clearSession();clearSessionIdentity(previousUserId);} state.user = null; state.identity = null; state.identityBundle = null; state.activeContact = null; el.appView.classList.add("hidden"); el.authView.classList.remove("hidden"); }
+function showAuth(clearTokens = true) { clearInterval(state.pollingTimer); stopRealtime(); endCall(false,"Сессия завершена"); const previousUserId=state.user?.id||state.pendingRestoreUser?.id; if(clearTokens){clearSession();clearSessionIdentity(previousUserId);} state.user = null; state.identity = null; state.identityBundle = null; state.activeContact = null; el.appView.classList.add("hidden"); el.authView.classList.remove("hidden"); }
 function showApp(user) {
   state.user = user; localStorage.setItem("fibrochat_last_user_id",user.id); el.authView.classList.add("hidden"); el.appView.classList.remove("hidden");
   el.profileNickname.textContent = user.displayName || user.nickname; if(el.profileFibroId)el.profileFibroId.textContent=user.fibroId||"—"; el.profileStatus.textContent = `${statusName(user.status)} · ключи ${user.keysConfigured ? "настроены" : "не настроены"}`;
@@ -612,7 +615,7 @@ async function createGroup(event){
   try{const data=await api("/api/groups",{method:"POST",body:JSON.stringify({name:el.groupName.value,description:el.groupDescription.value,memberIds})});closeGroupModal();await loadGroups();await openGroup(data.group.id);}
   catch(error){el.groupFormMessage.textContent=error.message;}
 }
-async function openGroup(groupId){
+async function openGroup(groupId){if(el.callButton)el.callButton.classList.add("hidden");
   state.activeGroup=state.groups.find(g=>g.id===groupId)||null;if(!state.activeGroup)return;state.activeContact=null;state.editingMessage=null;state.pendingReply=null;state.messageSearch="";renderContacts();renderGroups();
   el.chatName.textContent=state.activeGroup.name;el.chatPresence.textContent=`${state.activeGroup.memberCount} участников`;if(el.groupSettingsButton)el.groupSettingsButton.classList.remove("hidden");el.emptyChat.classList.add("hidden");el.chatView.classList.remove("hidden");document.body.classList.add("chat-open");
   if(el.attachmentButton)el.attachmentButton.classList.add("hidden");if(el.voiceButton)el.voiceButton.classList.add("hidden");await loadMessages(true);el.messageInput.focus();
@@ -642,7 +645,7 @@ function renderContacts() {
   }).join("") || '<div class="conversation-empty"><span>✦</span><strong>Здесь появятся диалоги</strong><p>Добавьте человека по полному Fibro ID, чтобы начать защищённое общение.</p></div>';
 }
 function updateChatHeader() { if (!state.activeContact) return; el.chatName.textContent = state.activeContact.displayName || state.activeContact.nickname; el.chatPresence.textContent = state.activeContact.online ? "В сети" : "Не в сети"; }
-async function openChat(contactId) { state.activeGroup=null;if(el.groupSettingsButton)el.groupSettingsButton.classList.add("hidden");if(el.attachmentButton)el.attachmentButton.classList.remove("hidden");if(el.voiceButton)el.voiceButton.classList.remove("hidden"); state.activeContact = state.contacts.find((contact) => contact.id === contactId) || null; if (!state.activeContact) return; state.editingMessage=null;state.messageSearch="";if(el.chatSearchInput)el.chatSearchInput.value="";renderEditPreview();renderContacts(); updateChatHeader(); el.emptyChat.classList.add("hidden"); el.chatView.classList.remove("hidden"); document.body.classList.add("chat-open"); await loadMessages(true); await loadContacts(false); el.messageInput.focus(); }
+async function openChat(contactId) { state.activeGroup=null;if(el.callButton)el.callButton.classList.remove("hidden");if(el.groupSettingsButton)el.groupSettingsButton.classList.add("hidden");if(el.attachmentButton)el.attachmentButton.classList.remove("hidden");if(el.voiceButton)el.voiceButton.classList.remove("hidden"); state.activeContact = state.contacts.find((contact) => contact.id === contactId) || null; if (!state.activeContact) return; state.editingMessage=null;state.messageSearch="";if(el.chatSearchInput)el.chatSearchInput.value="";renderEditPreview();renderContacts(); updateChatHeader(); el.emptyChat.classList.add("hidden"); el.chatView.classList.remove("hidden"); document.body.classList.add("chat-open"); await loadMessages(true); await loadContacts(false); el.messageInput.focus(); }
 function formatBytes(value){const bytes=Number(value)||0;if(bytes<1024)return `${bytes} Б`;if(bytes<1024*1024)return `${(bytes/1024).toFixed(1)} КБ`;return `${(bytes/1024/1024).toFixed(1)} МБ`;}
 function parseMessageContent(text){
   try{const value=JSON.parse(text);if(value&&Number(value.version)>=1&&["attachment","voice","text"].includes(value.type))return value;}catch{}
@@ -780,9 +783,77 @@ async function loadAudit() {
 async function loadSecurityActivity(){try{const data=await api("/api/admin/security/activity",{method:"GET"});el.securityActivityList.innerHTML=data.events.map(event=>`<div class="audit-row security-${event.type.includes("FAILED")||event.type.includes("BLOCKED")?"danger":"normal"}"><strong>${escapeHtml(event.type)}</strong><span>${new Date(event.createdAt).toLocaleString("ru-RU")}</span><small>${escapeHtml(JSON.stringify(event.details||{}))}</small></div>`).join("")||'<p class="muted">Событий пока нет.</p>';}catch(error){el.securityActivityList.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;}}
 async function loadInvites(){try{const data=await api("/api/admin/invites",{method:"GET"});el.invitesList.innerHTML=data.invites.map(i=>`<div class="invite-row"><div><code>${escapeHtml(i.code)}</code><small>${escapeHtml(roleName(i.role||"user"))} · до ${dateText(i.expiresAt)} · ${i.usedAt?"использован":i.revokedAt?"отозван":"активен"}</small></div>${!i.usedAt&&!i.revokedAt?`<button class="danger-button" data-invite-revoke="${i.id}" type="button">Отозвать</button>`:""}</div>`).join("")||'<p class="muted">Инвайтов нет.</p>';}catch(error){el.invitesList.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;}}
 
+
+const CALL_RTC_CONFIG={iceServers:[{urls:"stun:stun.l.google.com:19302"}]};
+function callPeerName(user){return user?.displayName||user?.nickname||"Контакт";}
+function setCallUi({name,status,incoming=false,active=false}={}){
+  if(!el.callModal)return;
+  el.callTitle.textContent=name||"Аудиозвонок";el.callStatus.textContent=status||"Подготовка…";
+  el.callAvatar.textContent=(name||"F").trim().slice(0,1).toUpperCase();
+  el.callKicker.textContent=incoming?"Входящий аудиозвонок":"Аудиозвонок";
+  el.callAccept.classList.toggle("hidden",!incoming);el.callMute.classList.toggle("hidden",!active);
+  el.callModal.classList.remove("hidden");
+}
+function closeCallUi(){el.callModal?.classList.add("hidden");el.callAccept?.classList.add("hidden");el.callMute?.classList.add("hidden");el.callMute?.classList.remove("muted");if(el.remoteCallAudio)el.remoteCallAudio.srcObject=null;}
+async function sendCallSignal(targetUserId,kind,data={}){return api("/api/calls/signal",{method:"POST",body:JSON.stringify({targetUserId,kind,callId:data.callId||state.call?.callId||state.pendingIncomingCall?.callId,description:data.description||null,candidate:data.candidate||null})});}
+function createPeerConnection(targetUserId,callId){
+  const pc=new RTCPeerConnection(CALL_RTC_CONFIG);
+  pc.onicecandidate=event=>{if(event.candidate)sendCallSignal(targetUserId,"ice",{callId,candidate:event.candidate.toJSON()}).catch(()=>null);};
+  pc.ontrack=event=>{if(el.remoteCallAudio)el.remoteCallAudio.srcObject=event.streams[0];};
+  pc.onconnectionstatechange=()=>{const st=pc.connectionState;if(st==="connected")setCallUi({name:callPeerName(state.call?.peer),status:"Соединение установлено",active:true});if(["failed","disconnected","closed"].includes(st)&&state.call)endCall(false,st==="failed"?"Не удалось установить соединение":"Звонок завершён");};
+  return pc;
+}
+async function startAudioCall(){
+  if(!state.activeContact||state.call||state.pendingIncomingCall)return;
+  if(!navigator.mediaDevices?.getUserMedia||!window.RTCPeerConnection){setChatError("Этот браузер не поддерживает аудиозвонки WebRTC.");return;}
+  const peer=state.activeContact;const callId=crypto.randomUUID();
+  try{
+    setCallUi({name:callPeerName(peer),status:"Доступ к микрофону…"});
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});const pc=createPeerConnection(peer.id,callId);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
+    state.call={callId,peer,pc,stream,direction:"outgoing",muted:false};
+    const offer=await pc.createOffer({offerToReceiveAudio:true});await pc.setLocalDescription(offer);await sendCallSignal(peer.id,"offer",{callId,description:pc.localDescription});
+    setCallUi({name:callPeerName(peer),status:"Вызов…",active:true});
+  }catch(error){endCall(false,error.name==="NotAllowedError"?"Доступ к микрофону запрещён":error.message);setChatError(error.name==="NotAllowedError"?"Разрешите доступ к микрофону для звонков.":error.message);}
+}
+async function acceptIncomingCall(){
+  const incoming=state.pendingIncomingCall;if(!incoming)return;
+  try{
+    setCallUi({name:callPeerName(incoming.fromUser),status:"Подключение…"});
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});const pc=createPeerConnection(incoming.fromUserId,incoming.callId);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
+    state.call={callId:incoming.callId,peer:incoming.fromUser,pc,stream,direction:"incoming",muted:false};state.pendingIncomingCall=null;
+    await pc.setRemoteDescription(incoming.description);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await sendCallSignal(state.call.peer.id,"answer",{callId:state.call.callId,description:pc.localDescription});
+    for(const candidate of incoming.queuedCandidates||[])await pc.addIceCandidate(candidate).catch(()=>null);
+    setCallUi({name:callPeerName(state.call.peer),status:"Соединение…",active:true});
+  }catch(error){await sendCallSignal(incoming.fromUserId,"reject",{callId:incoming.callId}).catch(()=>null);endCall(false,error.name==="NotAllowedError"?"Доступ к микрофону запрещён":error.message);}
+}
+async function endCall(notifyPeer=true,status="Звонок завершён"){
+  const current=state.call;const incoming=state.pendingIncomingCall;
+  if(notifyPeer){if(current)await sendCallSignal(current.peer.id,"hangup",{callId:current.callId}).catch(()=>null);else if(incoming)await sendCallSignal(incoming.fromUserId,"reject",{callId:incoming.callId}).catch(()=>null);}
+  if(current?.stream)current.stream.getTracks().forEach(track=>track.stop());if(current?.pc)current.pc.close();state.call=null;state.pendingIncomingCall=null;
+  if(el.callStatus&&!el.callModal?.classList.contains("hidden")){el.callStatus.textContent=status;setTimeout(()=>{if(!state.call&&!state.pendingIncomingCall)closeCallUi();},650);}else closeCallUi();
+}
+function toggleCallMute(){const current=state.call;if(!current)return;current.muted=!current.muted;current.stream.getAudioTracks().forEach(track=>track.enabled=!current.muted);el.callMute.classList.toggle("muted",current.muted);el.callStatus.textContent=current.muted?"Микрофон выключен":"Соединение установлено";}
+async function handleCallSignal(signal){
+  if(!signal?.kind||!signal.callId)return;
+  if(signal.kind==="offer"){
+    if(state.call||state.pendingIncomingCall){await sendCallSignal(signal.fromUserId,"busy",{callId:signal.callId}).catch(()=>null);return;}
+    state.pendingIncomingCall={...signal,queuedCandidates:[]};setCallUi({name:callPeerName(signal.fromUser),status:"Входящий вызов",incoming:true});showBrowserNotification("Входящий звонок",{body:`${callPeerName(signal.fromUser)} звонит вам`,tag:`call-${signal.callId}`});return;
+  }
+  if(signal.kind==="answer"&&state.call?.callId===signal.callId){await state.call.pc.setRemoteDescription(signal.description);el.callStatus.textContent="Соединение…";return;}
+  if(signal.kind==="ice"){
+    if(state.call?.callId===signal.callId&&signal.candidate)await state.call.pc.addIceCandidate(signal.candidate).catch(()=>null);
+    else if(state.pendingIncomingCall?.callId===signal.callId&&signal.candidate)state.pendingIncomingCall.queuedCandidates.push(signal.candidate);return;
+  }
+  if(["reject","hangup","busy"].includes(signal.kind)&&((state.call?.callId===signal.callId)||(state.pendingIncomingCall?.callId===signal.callId))){const text=signal.kind==="busy"?"Контакт занят":signal.kind==="reject"?"Вызов отклонён":"Собеседник завершил звонок";await endCall(false,text);}
+}
+
 el.registerTab.addEventListener("click", () => setMode("register"));
 el.loginTab.addEventListener("click", () => setMode("login"));
 el.authForm.addEventListener("submit", handleAuth);
+el.callButton?.addEventListener("click",startAudioCall);
+el.callAccept?.addEventListener("click",acceptIncomingCall);
+el.callDecline?.addEventListener("click",()=>endCall(true));
+el.callMute?.addEventListener("click",toggleCallMute);
 el.logout.addEventListener("click", async () => { try { await api("/api/logout", { method: "POST" }); } catch {} showAuth(); });
 el.logoutAll.addEventListener("click", async()=>{if(!confirm("Завершить все активные сессии аккаунта на всех устройствах?"))return;try{await api("/api/logout-all",{method:"POST"});alert("Все сессии завершены.");}catch(error){alert(error.message);}showAuth();});
 el.refreshContacts.addEventListener("click", () => loadContacts(true));

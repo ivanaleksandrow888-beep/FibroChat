@@ -378,3 +378,7 @@ body{background:radial-gradient(circle at 8% 8%,rgba(79,70,229,.25),transparent 
   .call-modal{align-items:end;padding:12px}
   .call-card{border-radius:26px;padding:28px 20px calc(26px + env(safe-area-inset-bottom))}
 }
+
+/* Alpha 7.3 Production Calls diagnostics. */
+.call-metrics{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:-14px 0 24px;color:#99a8c9;font-size:12px}
+.call-metrics span{padding:5px 8px;border:1px solid rgba(151,166,210,.18);border-radius:999px;background:rgba(8,14,29,.35)}

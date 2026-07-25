@@ -16,9 +16,12 @@ module.exports = Object.freeze({
   MIGRATE_LEGACY_JSON: String(process.env.MIGRATE_LEGACY_JSON || "false").toLowerCase() === "true",
   NODE_ID: String(process.env.FIBRO_NODE_ID || "").trim(),
   NODE_REGION: String(process.env.FIBRO_NODE_REGION || "unknown").trim(),
-  APP_VERSION: "0.7.0-alpha7.2",
+  APP_VERSION: "0.7.0-alpha7.3",
   TURN_URLS: String(process.env.TURN_URLS || "").split(",").map(value => value.trim()).filter(Boolean),
   TURN_USERNAME: String(process.env.TURN_USERNAME || "").trim(),
   TURN_CREDENTIAL: String(process.env.TURN_CREDENTIAL || "").trim(),
+  TURN_SHARED_SECRET: String(process.env.TURN_SHARED_SECRET || "").trim(),
+  TURN_REALM: String(process.env.TURN_REALM || "").trim(),
+  TURN_TTL_SECONDS: Math.max(300, Number(process.env.TURN_TTL_SECONDS) || 3600),
   PROTOCOL_VERSION: "1.2"
 });

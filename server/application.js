@@ -340,8 +340,16 @@ async function handleApi(req,res,pathname,searchParams){
   if(pathname==="/api/calls/config"&&req.method==="GET"){
     const auth=requireAuth(req,res);if(!auth)return true;
     const iceServers=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}];
-    if(config.TURN_URLS.length&&config.TURN_USERNAME&&config.TURN_CREDENTIAL)iceServers.push({urls:config.TURN_URLS,username:config.TURN_USERNAME,credential:config.TURN_CREDENTIAL});
-    sendJson(res,200,{ok:true,iceServers,turnConfigured:iceServers.length>1});return true;
+    let turnMode="disabled";let expiresAt=null;
+    if(config.TURN_URLS.length&&config.TURN_SHARED_SECRET){
+      const expires=Math.floor(Date.now()/1000)+config.TURN_TTL_SECONDS;
+      const username=`${expires}:${auth.user.id}`;
+      const credential=crypto.createHmac("sha1",config.TURN_SHARED_SECRET).update(username).digest("base64");
+      iceServers.push({urls:config.TURN_URLS,username,credential});turnMode="temporary";expiresAt=new Date(expires*1000).toISOString();
+    }else if(config.TURN_URLS.length&&config.TURN_USERNAME&&config.TURN_CREDENTIAL){
+      iceServers.push({urls:config.TURN_URLS,username:config.TURN_USERNAME,credential:config.TURN_CREDENTIAL});turnMode="static";
+    }
+    sendJson(res,200,{ok:true,iceServers,turnConfigured:turnMode!=="disabled",turnMode,turnRealm:config.TURN_REALM||null,expiresAt});return true;
   }
   if(pathname==="/api/calls/signal"&&req.method==="POST"){
     const auth=requireAuth(req,res);if(!auth)return true;

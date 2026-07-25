@@ -383,7 +383,7 @@ body{background:radial-gradient(circle at 8% 8%,rgba(79,70,229,.25),transparent 
 .call-metrics{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:-14px 0 24px;color:#99a8c9;font-size:12px}
 .call-metrics span{padding:5px 8px;border:1px solid rgba(151,166,210,.18);border-radius:999px;background:rgba(8,14,29,.35)}
 
-/* FibroChat v0.7.0-alpha7.4.1 — Visible bottom navigation hotfix */
+/* FibroChat v0.7.0-alpha7.5 — Visible bottom navigation hotfix */
 :root{
   --alpha74-topbar-height:104px;
   --alpha74-dock-height:88px;
@@ -615,3 +615,12 @@ body{background:radial-gradient(circle at 8% 8%,rgba(79,70,229,.25),transparent 
 /* Alpha 7.4.1: the dock is a direct workspace child. Keep it visible even with legacy cached markup. */
 .workspace-alpha74 .fibro-rail{overflow:visible;}
 .workspace-alpha74>.fibro-navigation{visibility:visible;opacity:1;pointer-events:auto;}
+
+
+/* FibroChat v0.7.0-alpha7.5 — smart invitations and guided onboarding */
+.fibro-onboarding{position:fixed;inset:0;z-index:100500;display:grid;place-items:center;padding:18px;background:rgba(5,9,20,.78);backdrop-filter:blur(10px)}
+.fibro-onboarding.hidden{display:none}
+.onboarding-card{width:min(560px,100%);max-height:calc(100dvh - 36px);overflow:auto;border:1px solid var(--border,#40517d);border-radius:24px;padding:22px;background:var(--panel,#10182c);color:var(--text,#fff);box-shadow:0 24px 70px rgba(0,0,0,.45)}
+.onboarding-progress{height:8px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.1);margin-bottom:24px}.onboarding-progress span{display:block;height:100%;border-radius:inherit;background:#687cff;transition:width .25s ease}
+.onboarding-step{text-align:center}.onboarding-icon{font-size:44px;margin:8px}.onboarding-step h2{margin:8px 0 12px}.onboarding-step p{line-height:1.55;color:#bcc6df}.onboarding-extra{margin-top:18px}.onboarding-actions{display:flex;justify-content:space-between;gap:12px;margin-top:24px}.onboarding-actions button{min-width:120px}.onboarding-instruction{white-space:pre-wrap;text-align:left;padding:14px;border-radius:14px;background:rgba(255,255,255,.07);color:#dce3f5;font:inherit;line-height:1.5}.status-chip,.success-note{display:inline-block;padding:8px 12px;border-radius:999px;background:rgba(104,124,255,.16)!important;color:#dce3ff!important}.inline-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:560px){.fibro-onboarding{padding:0;place-items:stretch}.onboarding-card{width:100%;max-height:100dvh;border-radius:0;padding:20px 16px calc(20px + env(safe-area-inset-bottom))}.onboarding-actions{position:sticky;bottom:0;padding-top:12px;background:var(--panel,#10182c)}}

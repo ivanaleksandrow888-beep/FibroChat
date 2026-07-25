@@ -73,6 +73,9 @@
   const settingsPage=document.createElement("section");settingsPage.className="app-page";settingsPage.dataset.page="settings";
   settingsPage.innerHTML='<header class="page-heading fibro-heading"><span class="eyebrow">ЛИЧНЫЙ КОНТУР</span><div><h2>Настройки</h2><p>Устройства, ключи, безопасность и управление сетью.</p></div></header>';
   const settingsGrid=document.createElement("div");settingsGrid.className="settings-grid";
+  const onboardingPanel=document.createElement("section");onboardingPanel.className="service-panel";onboardingPanel.innerHTML='<div class="section-head"><div><h3>Первоначальная настройка</h3><p>Проверка браузера, уведомлений и микрофона с пошаговыми подсказками.</p></div></div><button id="restart-onboarding" class="mini-button" type="button">Повторить мастер настройки</button>';
+  onboardingPanel.querySelector("#restart-onboarding").addEventListener("click",()=>window.openFibroOnboarding?.());
+  settingsGrid.append(onboardingPanel);
   if(devicePanel)settingsGrid.append(devicePanel);
   if(supportPanel)settingsGrid.append(supportPanel);
   settingsPage.append(settingsGrid);

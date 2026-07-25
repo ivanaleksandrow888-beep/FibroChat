@@ -15,7 +15,7 @@
 <body>
   <main class="shell">
     <section id="auth-view" class="card auth-card">
-      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>Conversation UI v0.7.0-alpha7.4.1</p></div></div>
+      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>Conversation UI v0.7.0-alpha7.5</p></div></div>
       <div class="node-line"><span id="node-dot" class="dot"></span><span id="node-text">Проверка головного узла…</span></div>
       <div class="tabs"><button id="register-tab" class="tab active" type="button">Регистрация</button><button id="login-tab" class="tab" type="button">Вход</button></div>
       <form id="auth-form">
@@ -139,7 +139,7 @@
           </section>
 
           <button id="create-invite" class="primary" type="button">Создать инвайт</button>
-          <div class="invite-create-row"><select id="invite-role"><option value="user">Пользователь</option><option value="admin">Администратор</option></select><select id="invite-days"><option value="1">1 день</option><option value="7" selected>7 дней</option><option value="30">30 дней</option></select></div><code id="invite-output">Новый код появится здесь</code><div id="invites-list" class="invites-list"></div>
+          <div class="invite-create-row"><select id="invite-role"><option value="user">Пользователь</option><option value="admin">Администратор</option></select><select id="invite-days"><option value="1">1 день</option><option value="7" selected>7 дней</option><option value="30">30 дней</option></select></div><code id="invite-output">Новый код появится здесь</code><h4>Запросы на подключение</h4><p class="muted">Обычные пользователи могут поделиться QR-кодом. После сканирования запрос появляется здесь.</p><div id="invite-requests-list" class="invites-list"><p class="muted">Загрузка…</p></div><h4>Созданные инвайты</h4><div id="invites-list" class="invites-list"></div>
           <h4>Пользователи и безопасность</h4><p class="muted">Поиск, роли, временная блокировка и управление сессиями.</p>
           <div class="admin-filters"><input id="admin-user-search" placeholder="Никнейм, имя или Fibro ID"><select id="admin-user-status"><option value="">Все статусы</option><option value="active">Активные</option><option value="pending">Ожидают</option><option value="suspended">Приостановлены</option></select><select id="admin-user-role"><option value="">Все роли</option><option value="user">Пользователь</option><option value="admin">Администратор</option><option value="super_admin">Головной администратор</option></select><button id="admin-user-refresh" class="mini-button" type="button">Обновить</button></div>
           <div id="users-list" class="users-list"></div>
@@ -216,7 +216,7 @@
       <audio id="remote-call-audio" autoplay></audio>
     </section>
   </div>
-  <script src="ui-shell.js?v=0.7.0-alpha7.4.1"></script>
-  <script src="app.js?v=0.7.0-alpha7.4.1"></script>
+  <script src="ui-shell.js?v=0.7.0-alpha7.5"></script>
+  <script src="app.js?v=0.7.0-alpha7.5"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.7.0-alpha7.1";
+const CLIENT_VERSION = "0.7.0-alpha7.2";
 const CLIENT_PROTOCOL = "1.2";
 
 const state = {
@@ -517,7 +517,7 @@ function showApp(user) {
   el.currentRole.textContent = roleName(user.role);
   const isAdmin = ["admin", "super_admin"].includes(user.role); el.adminPanel.classList.toggle("hidden", !isAdmin);
   if (user.status === "active" && user.subscriptionState !== "expired") { loadContacts(); loadGroups(); } else el.contactsList.innerHTML = `<p class="muted">${user.subscriptionState === "expired" ? "Подписка истекла. Переписка временно недоступна, но поддержка работает." : "Аккаунт ожидает подтверждения администратора."}</p>`;
-  loadNotifications(); loadSupport(); loadDevices(); loadProfile(); installSecurityControls(); setTimeout(offerPushSetup,700); if(("Notification" in window&&Notification.permission==="granted"))enableWebPush().catch(()=>null);
+  loadNotifications(); loadSupport(); loadDevices(); loadProfile(); loadCallRtcConfig(); installSecurityControls(); setTimeout(offerPushSetup,700); if(("Notification" in window&&Notification.permission==="granted"))enableWebPush().catch(()=>null);
   if (isAdmin) loadAdmin(); clearInterval(state.pollingTimer);
   connectRealtime();
   const sharedFibroId=new URLSearchParams(location.search).get("add");
@@ -784,8 +784,16 @@ async function loadSecurityActivity(){try{const data=await api("/api/admin/secur
 async function loadInvites(){try{const data=await api("/api/admin/invites",{method:"GET"});el.invitesList.innerHTML=data.invites.map(i=>`<div class="invite-row"><div><code>${escapeHtml(i.code)}</code><small>${escapeHtml(roleName(i.role||"user"))} · до ${dateText(i.expiresAt)} · ${i.usedAt?"использован":i.revokedAt?"отозван":"активен"}</small></div>${!i.usedAt&&!i.revokedAt?`<button class="danger-button" data-invite-revoke="${i.id}" type="button">Отозвать</button>`:""}</div>`).join("")||'<p class="muted">Инвайтов нет.</p>';}catch(error){el.invitesList.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;}}
 
 
-const CALL_RTC_CONFIG={iceServers:[{urls:"stun:stun.l.google.com:19302"}]};
+const DEFAULT_CALL_RTC_CONFIG={iceServers:[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}],iceCandidatePoolSize:4};
+let callRtcConfig=DEFAULT_CALL_RTC_CONFIG;
+const callAudio={context:null,master:null,timers:[],mode:null};
 function callPeerName(user){return user?.displayName||user?.nickname||"Контакт";}
+function clearCallTimers(){for(const timer of callAudio.timers)clearTimeout(timer);callAudio.timers=[];}
+function stopCallTone(){clearCallTimers();callAudio.mode=null;if(callAudio.master){try{callAudio.master.gain.cancelScheduledValues(0);callAudio.master.gain.setValueAtTime(0,callAudio.context.currentTime);}catch{}}}
+async function ensureCallAudio(){const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass)return null;if(!callAudio.context){callAudio.context=new AudioContextClass();callAudio.master=callAudio.context.createGain();callAudio.master.gain.value=0;callAudio.master.connect(callAudio.context.destination);}if(callAudio.context.state==="suspended")await callAudio.context.resume().catch(()=>null);return callAudio.context;}
+function playToneBurst(frequencies,duration=.35,volume=.055){if(!callAudio.context||!callAudio.master)return;const now=callAudio.context.currentTime;callAudio.master.gain.cancelScheduledValues(now);callAudio.master.gain.setValueAtTime(volume,now);callAudio.master.gain.exponentialRampToValueAtTime(.0001,now+duration);for(const frequency of frequencies){const oscillator=callAudio.context.createOscillator();oscillator.type="sine";oscillator.frequency.value=frequency;oscillator.connect(callAudio.master);oscillator.start(now);oscillator.stop(now+duration+.03);}}
+async function startCallTone(mode){stopCallTone();await ensureCallAudio();callAudio.mode=mode;const schedule=()=>{if(callAudio.mode!==mode)return;if(mode==="ringback"){playToneBurst([425],1,.045);callAudio.timers.push(setTimeout(schedule,4000));}else{playToneBurst([440,480],.8,.06);callAudio.timers.push(setTimeout(()=>{if(callAudio.mode===mode)playToneBurst([440,480],.8,.06);},1000));callAudio.timers.push(setTimeout(schedule,5000));}};schedule();}
+async function loadCallRtcConfig(){try{const data=await api("/api/calls/config",{method:"GET"});if(Array.isArray(data.iceServers)&&data.iceServers.length)callRtcConfig={iceServers:data.iceServers,iceCandidatePoolSize:4};}catch(error){console.warn("Call ICE config fallback",error);}}
 function setCallUi({name,status,incoming=false,active=false}={}){
   if(!el.callModal)return;
   el.callTitle.textContent=name||"Аудиозвонок";el.callStatus.textContent=status||"Подготовка…";
@@ -794,13 +802,16 @@ function setCallUi({name,status,incoming=false,active=false}={}){
   el.callAccept.classList.toggle("hidden",!incoming);el.callMute.classList.toggle("hidden",!active);
   el.callModal.classList.remove("hidden");
 }
-function closeCallUi(){el.callModal?.classList.add("hidden");el.callAccept?.classList.add("hidden");el.callMute?.classList.add("hidden");el.callMute?.classList.remove("muted");if(el.remoteCallAudio)el.remoteCallAudio.srcObject=null;}
+function closeCallUi(){stopCallTone();el.callModal?.classList.add("hidden");el.callAccept?.classList.add("hidden");el.callMute?.classList.add("hidden");el.callMute?.classList.remove("muted");if(el.remoteCallAudio){el.remoteCallAudio.pause?.();el.remoteCallAudio.srcObject=null;}}
 async function sendCallSignal(targetUserId,kind,data={}){return api("/api/calls/signal",{method:"POST",body:JSON.stringify({targetUserId,kind,callId:data.callId||state.call?.callId||state.pendingIncomingCall?.callId,description:data.description||null,candidate:data.candidate||null})});}
+function armCallTimeout(call,status="Не удалось установить соединение",ms=35000){clearTimeout(call.connectionTimeout);call.connectionTimeout=setTimeout(()=>{if(state.call?.callId===call.callId&&state.call.pc.connectionState!=="connected")endCall(true,status);},ms);}
+async function flushQueuedCandidates(call){if(!call?.pc?.remoteDescription)return;const queued=call.queuedCandidates.splice(0);for(const candidate of queued){try{await call.pc.addIceCandidate(candidate);}catch(error){console.warn("ICE candidate rejected",error);}}}
 function createPeerConnection(targetUserId,callId){
-  const pc=new RTCPeerConnection(CALL_RTC_CONFIG);
-  pc.onicecandidate=event=>{if(event.candidate)sendCallSignal(targetUserId,"ice",{callId,candidate:event.candidate.toJSON()}).catch(()=>null);};
-  pc.ontrack=event=>{if(el.remoteCallAudio)el.remoteCallAudio.srcObject=event.streams[0];};
-  pc.onconnectionstatechange=()=>{const st=pc.connectionState;if(st==="connected")setCallUi({name:callPeerName(state.call?.peer),status:"Соединение установлено",active:true});if(["failed","disconnected","closed"].includes(st)&&state.call)endCall(false,st==="failed"?"Не удалось установить соединение":"Звонок завершён");};
+  const pc=new RTCPeerConnection(callRtcConfig);
+  pc.onicecandidate=event=>{if(event.candidate)sendCallSignal(targetUserId,"ice",{callId,candidate:event.candidate.toJSON()}).catch(error=>console.warn("ICE signal failed",error));};
+  pc.ontrack=async event=>{if(!el.remoteCallAudio)return;el.remoteCallAudio.srcObject=event.streams[0]||new MediaStream([event.track]);el.remoteCallAudio.muted=false;el.remoteCallAudio.volume=1;await el.remoteCallAudio.play().catch(()=>null);};
+  pc.onconnectionstatechange=()=>{const st=pc.connectionState;console.info("FibroCall connection",callId,st);if(st==="connected"){stopCallTone();const current=state.call;if(current){clearTimeout(current.connectionTimeout);current.connectedAt=Date.now();}setCallUi({name:callPeerName(state.call?.peer),status:"Соединение установлено",active:true});}if(st==="failed"&&state.call?.callId===callId)endCall(false,"Не удалось установить соединение");if(st==="closed"&&state.call?.callId===callId)endCall(false,"Звонок завершён");};
+  pc.oniceconnectionstatechange=()=>{const st=pc.iceConnectionState;console.info("FibroCall ICE",callId,st);if(st==="checking"&&el.callStatus)el.callStatus.textContent="Проверяем сетевое соединение…";if(st==="failed"&&state.call?.callId===callId)endCall(false,"Сетевое соединение не установлено. Нужен TURN-сервер.");};
   return pc;
 }
 async function startAudioCall(){
@@ -808,41 +819,42 @@ async function startAudioCall(){
   if(!navigator.mediaDevices?.getUserMedia||!window.RTCPeerConnection){setChatError("Этот браузер не поддерживает аудиозвонки WebRTC.");return;}
   const peer=state.activeContact;const callId=crypto.randomUUID();
   try{
-    setCallUi({name:callPeerName(peer),status:"Доступ к микрофону…"});
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});const pc=createPeerConnection(peer.id,callId);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
-    state.call={callId,peer,pc,stream,direction:"outgoing",muted:false};
+    await ensureCallAudio();setCallUi({name:callPeerName(peer),status:"Доступ к микрофону…"});
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});const pc=createPeerConnection(peer.id,callId);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
+    state.call={callId,peer,pc,stream,direction:"outgoing",muted:false,queuedCandidates:[],connectionTimeout:null};
+    armCallTimeout(state.call,"Собеседник не ответил или соединение недоступно",45000);
     const offer=await pc.createOffer({offerToReceiveAudio:true});await pc.setLocalDescription(offer);await sendCallSignal(peer.id,"offer",{callId,description:pc.localDescription});
-    setCallUi({name:callPeerName(peer),status:"Вызов…",active:true});
-  }catch(error){endCall(false,error.name==="NotAllowedError"?"Доступ к микрофону запрещён":error.message);setChatError(error.name==="NotAllowedError"?"Разрешите доступ к микрофону для звонков.":error.message);}
+    setCallUi({name:callPeerName(peer),status:"Идёт вызов…",active:true});await startCallTone("ringback");
+  }catch(error){await endCall(false,error.name==="NotAllowedError"?"Доступ к микрофону запрещён":error.message);setChatError(error.name==="NotAllowedError"?"Разрешите доступ к микрофону для звонков.":error.message);}
 }
 async function acceptIncomingCall(){
   const incoming=state.pendingIncomingCall;if(!incoming)return;
   try{
-    setCallUi({name:callPeerName(incoming.fromUser),status:"Подключение…"});
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});const pc=createPeerConnection(incoming.fromUserId,incoming.callId);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
-    state.call={callId:incoming.callId,peer:incoming.fromUser,pc,stream,direction:"incoming",muted:false};state.pendingIncomingCall=null;
-    await pc.setRemoteDescription(incoming.description);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await sendCallSignal(state.call.peer.id,"answer",{callId:state.call.callId,description:pc.localDescription});
-    for(const candidate of incoming.queuedCandidates||[])await pc.addIceCandidate(candidate).catch(()=>null);
+    stopCallTone();await ensureCallAudio();setCallUi({name:callPeerName(incoming.fromUser),status:"Подключение…"});
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});const pc=createPeerConnection(incoming.fromUserId,incoming.callId);stream.getTracks().forEach(track=>pc.addTrack(track,stream));
+    state.call={callId:incoming.callId,peer:incoming.fromUser,pc,stream,direction:"incoming",muted:false,queuedCandidates:[...(incoming.queuedCandidates||[])],connectionTimeout:null};state.pendingIncomingCall=null;
+    armCallTimeout(state.call);
+    await pc.setRemoteDescription(incoming.description);await flushQueuedCandidates(state.call);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await sendCallSignal(state.call.peer.id,"answer",{callId:state.call.callId,description:pc.localDescription});
     setCallUi({name:callPeerName(state.call.peer),status:"Соединение…",active:true});
-  }catch(error){await sendCallSignal(incoming.fromUserId,"reject",{callId:incoming.callId}).catch(()=>null);endCall(false,error.name==="NotAllowedError"?"Доступ к микрофону запрещён":error.message);}
+  }catch(error){await sendCallSignal(incoming.fromUserId,"reject",{callId:incoming.callId}).catch(()=>null);await endCall(false,error.name==="NotAllowedError"?"Доступ к микрофону запрещён":error.message);}
 }
 async function endCall(notifyPeer=true,status="Звонок завершён"){
-  const current=state.call;const incoming=state.pendingIncomingCall;
+  stopCallTone();const current=state.call;const incoming=state.pendingIncomingCall;
   if(notifyPeer){if(current)await sendCallSignal(current.peer.id,"hangup",{callId:current.callId}).catch(()=>null);else if(incoming)await sendCallSignal(incoming.fromUserId,"reject",{callId:incoming.callId}).catch(()=>null);}
-  if(current?.stream)current.stream.getTracks().forEach(track=>track.stop());if(current?.pc)current.pc.close();state.call=null;state.pendingIncomingCall=null;
-  if(el.callStatus&&!el.callModal?.classList.contains("hidden")){el.callStatus.textContent=status;setTimeout(()=>{if(!state.call&&!state.pendingIncomingCall)closeCallUi();},650);}else closeCallUi();
+  clearTimeout(current?.connectionTimeout);if(current?.stream)current.stream.getTracks().forEach(track=>track.stop());if(current?.pc&&current.pc.signalingState!=="closed")current.pc.close();state.call=null;state.pendingIncomingCall=null;
+  if(el.callStatus&&!el.callModal?.classList.contains("hidden")){el.callStatus.textContent=status;setTimeout(()=>{if(!state.call&&!state.pendingIncomingCall)closeCallUi();},1100);}else closeCallUi();
 }
-function toggleCallMute(){const current=state.call;if(!current)return;current.muted=!current.muted;current.stream.getAudioTracks().forEach(track=>track.enabled=!current.muted);el.callMute.classList.toggle("muted",current.muted);el.callStatus.textContent=current.muted?"Микрофон выключен":"Соединение установлено";}
+function toggleCallMute(){const current=state.call;if(!current)return;current.muted=!current.muted;current.stream.getAudioTracks().forEach(track=>track.enabled=!current.muted);el.callMute.classList.toggle("muted",current.muted);el.callStatus.textContent=current.muted?"Микрофон выключен":current.pc.connectionState==="connected"?"Соединение установлено":"Соединение…";}
 async function handleCallSignal(signal){
   if(!signal?.kind||!signal.callId)return;
   if(signal.kind==="offer"){
     if(state.call||state.pendingIncomingCall){await sendCallSignal(signal.fromUserId,"busy",{callId:signal.callId}).catch(()=>null);return;}
-    state.pendingIncomingCall={...signal,queuedCandidates:[]};setCallUi({name:callPeerName(signal.fromUser),status:"Входящий вызов",incoming:true});showBrowserNotification("Входящий звонок",{body:`${callPeerName(signal.fromUser)} звонит вам`,tag:`call-${signal.callId}`});return;
+    state.pendingIncomingCall={...signal,queuedCandidates:[]};setCallUi({name:callPeerName(signal.fromUser),status:"Входящий вызов",incoming:true});await startCallTone("incoming");showBrowserNotification("Входящий звонок",{body:`${callPeerName(signal.fromUser)} звонит вам`,tag:`call-${signal.callId}`});return;
   }
-  if(signal.kind==="answer"&&state.call?.callId===signal.callId){await state.call.pc.setRemoteDescription(signal.description);el.callStatus.textContent="Соединение…";return;}
-  if(signal.kind==="ice"){
-    if(state.call?.callId===signal.callId&&signal.candidate)await state.call.pc.addIceCandidate(signal.candidate).catch(()=>null);
-    else if(state.pendingIncomingCall?.callId===signal.callId&&signal.candidate)state.pendingIncomingCall.queuedCandidates.push(signal.candidate);return;
+  if(signal.kind==="answer"&&state.call?.callId===signal.callId){stopCallTone();await state.call.pc.setRemoteDescription(signal.description);await flushQueuedCandidates(state.call);el.callStatus.textContent="Соединение…";return;}
+  if(signal.kind==="ice"&&signal.candidate){
+    if(state.call?.callId===signal.callId){if(state.call.pc.remoteDescription)await state.call.pc.addIceCandidate(signal.candidate).catch(error=>console.warn("ICE candidate rejected",error));else state.call.queuedCandidates.push(signal.candidate);}
+    else if(state.pendingIncomingCall?.callId===signal.callId)state.pendingIncomingCall.queuedCandidates.push(signal.candidate);return;
   }
   if(["reject","hangup","busy"].includes(signal.kind)&&((state.call?.callId===signal.callId)||(state.pendingIncomingCall?.callId===signal.callId))){const text=signal.kind==="busy"?"Контакт занят":signal.kind==="reject"?"Вызов отклонён":"Собеседник завершил звонок";await endCall(false,text);}
 }

@@ -337,6 +337,12 @@ async function handleApi(req,res,pathname,searchParams){
   if(pathname==="/api/network/public"&&req.method==="GET"){const network=readObject(NETWORK_FILE,{});sendJson(res,200,{ok:true,network:publicNetwork(network,req)});return true;}
   if(pathname==="/api/network/profile"&&req.method==="GET"){sendDownloadJson(res,`${readObject(NETWORK_FILE,{}).networkId||"fibrochat"}.fibronet.json`,createNetworkProfile(req));return true;}
   if(pathname==="/api/events"&&req.method==="GET"){const auth=requireAuth(req,res);if(!auth)return true;openEventStream(req,res,auth);return true;}
+  if(pathname==="/api/calls/config"&&req.method==="GET"){
+    const auth=requireAuth(req,res);if(!auth)return true;
+    const iceServers=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}];
+    if(config.TURN_URLS.length&&config.TURN_USERNAME&&config.TURN_CREDENTIAL)iceServers.push({urls:config.TURN_URLS,username:config.TURN_USERNAME,credential:config.TURN_CREDENTIAL});
+    sendJson(res,200,{ok:true,iceServers,turnConfigured:iceServers.length>1});return true;
+  }
   if(pathname==="/api/calls/signal"&&req.method==="POST"){
     const auth=requireAuth(req,res);if(!auth)return true;
     const body=await readBody(req);const targetId=String(body.targetUserId||"");const kind=String(body.kind||"");

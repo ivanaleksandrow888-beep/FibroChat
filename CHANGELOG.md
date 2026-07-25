@@ -111,3 +111,9 @@ See `RELEASE_NOTES_0.6.0.md`.
 - Added edited-message marker and SVG encryption indicator.
 - Synchronized visible and runtime versions.
 - Rotated service-worker cache and added regression assertions.
+
+## 0.7.0-alpha7.2
+- Исправлена потеря ранних ICE-кандидатов во время WebRTC-сигналинга.
+- Добавлены гудки исходящего вызова и рингтон входящего вызова.
+- Добавлены тайм-ауты, сетевые статусы и диагностика WebRTC.
+- Добавлена настраиваемая TURN-конфигурация через окружение.

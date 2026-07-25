@@ -118,7 +118,7 @@ See `RELEASE_NOTES_0.6.0.md`.
 - Добавлены тайм-ауты, сетевые статусы и диагностика WebRTC.
 - Добавлена настраиваемая TURN-конфигурация через окружение.
 
-## 0.7.0-alpha7.4
+## 0.7.0-alpha7.4.1
 
 - Bottom navigation restored for desktop and mobile.
 - Full-viewport application shell without unused outer space.

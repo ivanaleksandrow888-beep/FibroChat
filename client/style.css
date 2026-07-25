@@ -383,7 +383,7 @@ body{background:radial-gradient(circle at 8% 8%,rgba(79,70,229,.25),transparent 
 .call-metrics{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:-14px 0 24px;color:#99a8c9;font-size:12px}
 .call-metrics span{padding:5px 8px;border:1px solid rgba(151,166,210,.18);border-radius:999px;background:rgba(8,14,29,.35)}
 
-/* FibroChat v0.7.0-alpha7.4 — Full-screen bottom navigation and overlap fixes */
+/* FibroChat v0.7.0-alpha7.4.1 — Visible bottom navigation hotfix */
 :root{
   --alpha74-topbar-height:104px;
   --alpha74-dock-height:88px;
@@ -610,3 +610,8 @@ body{background:radial-gradient(circle at 8% 8%,rgba(79,70,229,.25),transparent 
 @media(prefers-reduced-motion:reduce){
   .workspace-alpha74 .app-page.active{animation:none;}
 }
+
+
+/* Alpha 7.4.1: the dock is a direct workspace child. Keep it visible even with legacy cached markup. */
+.workspace-alpha74 .fibro-rail{overflow:visible;}
+.workspace-alpha74>.fibro-navigation{visibility:visible;opacity:1;pointer-events:auto;}

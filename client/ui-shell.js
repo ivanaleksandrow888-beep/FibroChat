@@ -40,7 +40,6 @@
     <button type="button" data-page="profile" class="app-nav-button"><span class="nav-glyph">${icons.profile}</span><span class="nav-copy"><b>Профиль</b><small>Личность и приватность</small></span></button>
     <button type="button" data-page="notifications" class="app-nav-button"><span class="nav-glyph">${icons.notifications}</span><span class="nav-copy"><b>События</b><small>Уведомления сети</small></span><em id="nav-notification-count"></em></button>
     <button type="button" data-page="settings" class="app-nav-button"><span class="nav-glyph">${icons.settings}</span><span class="nav-copy"><b>Настройки</b><small>Защита и управление</small></span></button>`;
-  rail.append(nav);
 
   const railFooter=document.createElement("div");
   railFooter.className="fibro-rail-footer";
@@ -104,7 +103,7 @@
   }
 
   main.append(chatsPage,profilePage,notificationsPage,settingsPage);
-  appView.replaceChildren(rail,main);
+  appView.replaceChildren(rail,main,nav);
   appView.classList.add("workspace-v050","workspace-alpha3","workspace-alpha74");
 
   const buttons=[...nav.querySelectorAll("[data-page]")];

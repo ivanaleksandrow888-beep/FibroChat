@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.7.0-alpha7.4";
+const CLIENT_VERSION = "0.7.0-alpha7.4.1";
 const CLIENT_PROTOCOL = "1.2";
 
 const state = {

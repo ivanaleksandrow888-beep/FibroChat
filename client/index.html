@@ -15,7 +15,7 @@
 <body>
   <main class="shell">
     <section id="auth-view" class="card auth-card">
-      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>UI Evolution v0.7.0-alpha3</p></div></div>
+      <div class="brand"><div class="logo">F</div><div><h1>FibroChat</h1><p>Conversation UI v0.7.0-alpha6.1</p></div></div>
       <div class="node-line"><span id="node-dot" class="dot"></span><span id="node-text">Проверка головного узла…</span></div>
       <div class="tabs"><button id="register-tab" class="tab active" type="button">Регистрация</button><button id="login-tab" class="tab" type="button">Вход</button></div>
       <form id="auth-form">
@@ -109,6 +109,11 @@
           <p id="support-message" class="message"></p>
           <div id="support-list" class="support-list"><p class="muted">Обращений пока нет.</p></div>
         </section>
+
+        <section class="groups-panel">
+          <div class="section-head"><div><h3>Группы</h3><p>Защищённые групповые переписки</p></div><button id="create-group-button" class="icon-button" type="button" aria-label="Создать группу">＋</button></div>
+          <div id="groups-list" class="contacts-list"><p class="muted">Групп пока нет.</p></div>
+        </section>
         <div class="section-head"><div><h3>Контакты</h3><p>Только связанные с вами пользователи</p></div><button id="refresh-contacts" class="icon-button" type="button">↻</button></div>
         <div class="contact-add-box"><input id="contact-fibro-id" maxlength="23" autocomplete="off" placeholder="FIBRO-XXXX-XXXX-XXXX"><button id="add-contact" class="mini-button" type="button">Добавить</button><p id="contact-add-message" class="message"></p></div><div id="contacts-list" class="contacts-list"><p class="muted">Загрузка…</p></div>
         <section id="admin-panel" class="admin hidden">
@@ -148,18 +153,23 @@
       <section class="chat card">
         <div id="empty-chat" class="empty-chat"><div class="empty-icon">✦</div><h2>Первый контакт</h2><p>Выбери пользователя слева, чтобы открыть диалог.</p></div>
         <div id="chat-view" class="chat-view hidden">
-          <header class="chat-header"><button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к контактам">←</button><div><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line">Сквозное шифрование</small></div><span class="version-badge">🌐 v0.7.0-alpha3</span></header>
-          <div id="messages-list" class="messages-list"></div>
+          <header class="chat-header fibro-chat-header">
+            <button id="back-to-contacts" class="back-button" type="button" aria-label="Назад к диалогам"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <div class="chat-peer"><span class="chat-peer-orb" aria-hidden="true"></span><div class="chat-peer-copy"><h2 id="chat-name">—</h2><p id="chat-presence">Не в сети</p><small id="chat-security" class="security-line"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2"/><rect x="5" y="10" width="14" height="10" rx="3"/></svg>Сквозное шифрование</small></div></div>
+            <div class="chat-tools"><button id="chat-search-toggle" class="chat-tool-button" type="button" title="Поиск по диалогу" aria-label="Поиск по диалогу"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button><button id="group-settings-button" class="chat-tool-button hidden" type="button" title="Управление группой" aria-label="Управление группой"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1L7 4.2l.1.1A1.7 1.7 0 0 0 9 4a1.7 1.7 0 0 0 1-1.6v-.2h4v.2A1.7 1.7 0 0 0 15 4a1.7 1.7 0 0 0 1.9.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></svg></button><span class="version-badge">alpha6.1</span></div>
+          </header>
+          <div id="chat-search" class="chat-search hidden"><input id="chat-search-input" type="search" maxlength="120" placeholder="Поиск в расшифрованных сообщениях…"><span id="chat-search-count">0</span><button id="chat-search-close" type="button" aria-label="Закрыть поиск">×</button></div><div id="messages-list" class="messages-list"></div>
           <form id="message-form" class="composer">
+            <div id="edit-preview" class="edit-preview hidden"></div>
             <div id="reply-preview" class="reply-preview hidden"></div>
             <div id="attachment-preview" class="attachment-preview hidden"></div>
             <div id="voice-preview" class="voice-preview hidden"></div>
             <div class="composer-row">
               <input id="attachment-input" class="hidden" type="file">
-              <button id="attachment-button" class="composer-icon" type="button" title="Прикрепить файл" aria-label="Прикрепить файл">📎</button>
+              <button id="attachment-button" class="composer-icon" type="button" title="Прикрепить файл" aria-label="Прикрепить файл"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.4 11.6l-8.9 8.9a6 6 0 0 1-8.5-8.5l9.6-9.6a4 4 0 0 1 5.7 5.7l-9.7 9.7a2 2 0 0 1-2.8-2.8l8.9-8.9"/></svg></button>
               <div class="composer-main"><textarea id="message-input" rows="1" maxlength="4000" placeholder="Написать сообщение…"></textarea><span id="char-counter" class="char-counter">0/4000</span></div>
-              <button id="voice-button" class="composer-icon voice-button" type="button" title="Записать голосовое сообщение" aria-label="Записать голосовое сообщение">🎙️</button>
-              <button id="send-button" class="send-button" type="submit" disabled><span class="send-label">Отправить</span><span class="send-icon">➤</span></button>
+              <button id="voice-button" class="composer-icon voice-button" type="button" title="Записать голосовое сообщение" aria-label="Записать голосовое сообщение"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg></button>
+              <button id="send-button" class="send-button" type="submit" disabled><span class="send-label">Отправить</span><span class="send-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg></span></button>
             </div>
           </form>
           <p id="chat-error" class="message"></p>
@@ -167,7 +177,30 @@
       </section>
     </section>
   </main>
-  <script src="ui-shell.js?v=0.7.0-alpha3"></script>
-  <script src="app.js?v=0.7.0-alpha3"></script>
+
+  <div id="group-modal" class="group-modal hidden" role="dialog" aria-modal="true" aria-labelledby="group-modal-title">
+    <form id="group-form" class="group-modal-card">
+      <div class="section-head"><div><h3 id="group-modal-title">Новая группа</h3><p>Выберите участников из контактов</p></div><button id="group-modal-close" class="icon-button" type="button">×</button></div>
+      <label>Название<input id="group-name" maxlength="80" required placeholder="Например, Команда Fibro"></label>
+      <label>Описание<textarea id="group-description" maxlength="500" rows="3" placeholder="О чём эта группа"></textarea></label>
+      <div id="group-member-picker" class="group-member-picker"></div>
+      <button class="primary" type="submit">Создать группу</button><p id="group-form-message" class="message"></p>
+    </form>
+  </div>
+
+  <div id="group-settings-modal" class="group-modal hidden" role="dialog" aria-modal="true" aria-labelledby="group-settings-title">
+    <form id="group-settings-form" class="group-modal-card">
+      <div class="section-head"><div><h3 id="group-settings-title">Управление группой</h3><p>Название, участники и роли</p></div><button id="group-settings-close" class="icon-button" type="button">×</button></div>
+      <label>Название<input id="group-settings-name" maxlength="80" required></label>
+      <label>Описание<textarea id="group-settings-description" maxlength="500" rows="3"></textarea></label>
+      <button class="primary" type="submit">Сохранить</button>
+      <label>Новый участник<select id="group-add-member"><option value="">Добавить участника…</option></select></label>
+      <div id="group-members-list" class="group-members-list"></div>
+      <div class="group-danger-zone"><button id="group-leave-button" class="danger-button" type="button">Покинуть группу</button><button id="group-delete-button" class="danger-button hidden" type="button">Удалить группу</button></div>
+      <p id="group-settings-message" class="message"></p>
+    </form>
+  </div>
+  <script src="ui-shell.js?v=0.7.0-alpha6.1"></script>
+  <script src="app.js?v=0.7.0-alpha6.1"></script>
 </body>
 </html>

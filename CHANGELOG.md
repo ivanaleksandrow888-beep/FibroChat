@@ -87,3 +87,21 @@ See `RELEASE_NOTES_0.6.0.md`.
 - Добавлен список заблокированных пользователей.
 - Добавлены серверные проверки приватности и взаимной блокировки.
 - Добавлена миграция `004_profile_privacy.sql`.
+
+## 0.7.0-alpha5
+- Добавлены редактирование и удаление собственных сообщений.
+- Добавлен локальный поиск по расшифрованному диалогу.
+- Добавлены realtime-события обновления и удаления сообщений.
+- Обновлены интерфейс, версия клиента и cache key Service Worker.
+
+## 0.7.0-alpha6
+- Добавлены защищённые групповые чаты с клиентским encrypted fan-out.
+- Добавлены группы, участники и роли owner/admin/member.
+- Добавлены события реального времени и push-уведомления групп.
+- Добавлена PostgreSQL-миграция 007_groups.sql.
+
+## 0.7.0-alpha6.1
+- Completed group-management UI and related server endpoints.
+- Added edited-message marker and SVG encryption indicator.
+- Synchronized visible and runtime versions.
+- Rotated service-worker cache and added regression assertions.

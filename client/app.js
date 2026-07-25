@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.7.0-alpha2.1";
+const CLIENT_VERSION = "0.7.0-alpha6.1";
 const CLIENT_PROTOCOL = "1.2";
 
 const state = {
@@ -11,6 +11,9 @@ const state = {
   identity: null,
   contacts: [],
   activeContact: null,
+  groups: [],
+  activeGroup: null,
+  groupDirectory: [],
   pollingTimer: null,
   eventController: null,
   realtimeReconnectTimer: null,
@@ -26,6 +29,9 @@ const state = {
   pendingAvatarDataUrl: undefined,
   pendingAttachment: null,
   pendingReply: null,
+  editingMessage: null,
+  messageCache: [],
+  messageSearch: "",
   pendingVoice: null,
   mediaRecorder: null,
   recordingStartedAt: 0,
@@ -37,9 +43,9 @@ const el = {
   inviteField: $("#invite-field"), invite: $("#invite"), nickname: $("#nickname"), password: $("#password"), passwordConfirmField: $("#password-confirm-field"), passwordConfirm: $("#password-confirm"), deviceName: $("#device-name"),
   authForm: $("#auth-form"), submit: $("#submit-button"), authMessage: $("#auth-message"), nodeDot: $("#node-dot"), nodeText: $("#node-text"),
   profileNickname: $("#profile-nickname"), profileFibroId: $("#profile-fibro-id"), copyFibroId: $("#copy-fibro-id"), profileStatus: $("#profile-status"), profileSubscription: $("#profile-subscription"), currentRole: $("#current-role"),
-  logout: $("#logout-button"), contactsList: $("#contacts-list"), refreshContacts: $("#refresh-contacts"), contactFibroId: $("#contact-fibro-id"), addContact: $("#add-contact"), contactAddMessage: $("#contact-add-message"),
+  logout: $("#logout-button"), contactsList: $("#contacts-list"), refreshContacts: $("#refresh-contacts"), contactFibroId: $("#contact-fibro-id"), addContact: $("#add-contact"), contactAddMessage: $("#contact-add-message"), groupsList: $("#groups-list"), createGroupButton: $("#create-group-button"), groupModal: $("#group-modal"), groupModalClose: $("#group-modal-close"), groupForm: $("#group-form"), groupName: $("#group-name"), groupDescription: $("#group-description"), groupMemberPicker: $("#group-member-picker"), groupFormMessage: $("#group-form-message"), groupSettingsButton: $("#group-settings-button"), groupSettingsModal: $("#group-settings-modal"), groupSettingsClose: $("#group-settings-close"), groupSettingsForm: $("#group-settings-form"), groupSettingsName: $("#group-settings-name"), groupSettingsDescription: $("#group-settings-description"), groupMembersList: $("#group-members-list"), groupAddMember: $("#group-add-member"), groupSettingsMessage: $("#group-settings-message"), groupLeaveButton: $("#group-leave-button"), groupDeleteButton: $("#group-delete-button"),
   emptyChat: $("#empty-chat"), chatView: $("#chat-view"), chatName: $("#chat-name"), chatPresence: $("#chat-presence"),
-  messagesList: $("#messages-list"), messageForm: $("#message-form"), messageInput: $("#message-input"), sendButton: $("#send-button"), charCounter: $("#char-counter"), backToContacts: $("#back-to-contacts"), chatError: $("#chat-error"), attachmentInput: $("#attachment-input"), attachmentButton: $("#attachment-button"), attachmentPreview: $("#attachment-preview"), replyPreview: $("#reply-preview"), voicePreview: $("#voice-preview"), voiceButton: $("#voice-button"),
+  messagesList: $("#messages-list"), messageForm: $("#message-form"), messageInput: $("#message-input"), sendButton: $("#send-button"), charCounter: $("#char-counter"), backToContacts: $("#back-to-contacts"), chatError: $("#chat-error"), attachmentInput: $("#attachment-input"), attachmentButton: $("#attachment-button"), attachmentPreview: $("#attachment-preview"), replyPreview: $("#reply-preview"), editPreview: $("#edit-preview"), voicePreview: $("#voice-preview"), voiceButton: $("#voice-button"), chatSearch: $("#chat-search"), chatSearchInput: $("#chat-search-input"), chatSearchCount: $("#chat-search-count"), chatSearchToggle: $("#chat-search-toggle"), chatSearchClose: $("#chat-search-close"),
   adminPanel: $("#admin-panel"), createInvite: $("#create-invite"), inviteOutput: $("#invite-output"), usersList: $("#users-list"), dashboardSummary: $("#dashboard-summary"), networkStatus: $("#network-status"), auditList: $("#audit-list"), securityActivityList: $("#security-activity-list"), invitesList: $("#invites-list"), inviteRole: $("#invite-role"), inviteDays: $("#invite-days"), adminUserSearch: $("#admin-user-search"), adminUserStatus: $("#admin-user-status"), adminUserRole: $("#admin-user-role"), adminUserRefresh: $("#admin-user-refresh"),
   subscriptionMeterBar: $("#subscription-meter-bar"), notificationCount: $("#notification-count"), notificationsList: $("#notifications-list"), refreshNotifications: $("#refresh-notifications"),
   supportForm: $("#support-form"), supportSubject: $("#support-subject"), supportText: $("#support-text"), supportMessage: $("#support-message"), supportList: $("#support-list"),
@@ -244,12 +250,13 @@ function stopRealtime(){
 async function handleRealtimeEvent(type,payload){
   if(payload&&payload.protocol&&payload.payload!==undefined){type=payload.type||type;payload=payload.payload;}
   if(type==="connected"){state.realtimeConnected=true;el.nodeText.textContent=`Головной узел онлайн · v${CLIENT_VERSION} · протокол ${CLIENT_PROTOCOL} · связь в реальном времени`;return;}
-  if(["message:new","message:status","message:read"].includes(type)){
+  if(["message:new","message:status","message:read","message:updated","message:deleted"].includes(type)){
     if(type==="message:new")showBrowserNotification("Новое сообщение в FibroChat",{body:"Получено новое зашифрованное сообщение.",tag:`message-${payload?.messageId||Date.now()}`});
     await loadContacts(false).catch(()=>null);
     if(state.activeContact)await loadMessages(false).catch(()=>null);
     return;
   }
+  if(["group:updated","group:removed","group:message"].includes(type)){await loadGroups().catch(()=>null);if(type==="group:message")showBrowserNotification("Новое сообщение в группе",{body:"Получено защищённое групповое сообщение.",tag:`group-${payload?.messageId||Date.now()}`});if(state.activeGroup&&(!payload?.groupId||payload.groupId===state.activeGroup.id))await loadMessages(false).catch(()=>null);return;}
   if(type==="notification"){showBrowserNotification(payload?.title||"FibroChat",{body:payload?.text||"Новое уведомление",tag:`notification-${payload?.id||Date.now()}`});await loadNotifications(false).catch(()=>null);}
   if(type==="support:update")await loadSupport().catch(()=>null);
   if(type==="device:update")await loadDevices().catch(()=>null);
@@ -431,10 +438,10 @@ async function deriveWrapKey(privateKey, publicJwk, messageId, userId) {
   const hkdf = await crypto.subtle.importKey("raw", shared, "HKDF", false, ["deriveKey"]);
   return crypto.subtle.deriveKey({ name: "HKDF", hash: "SHA-256", salt: encoder.encode(messageId), info: encoder.encode(`FibroChat-wrap:${userId}`) }, hkdf, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
 }
-async function createEnvelope(text, recipient) {
+async function createEnvelope(text, recipient, options = {}) {
   if (!state.identity) throw new Error("Приватные ключи этого устройства не загружены");
-  const messageId = uuidV4();
-  const createdAt = new Date().toISOString();
+  const messageId = options.messageId || uuidV4();
+  const createdAt = options.createdAt || new Date().toISOString();
   const contentKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
   const rawContentKey = await crypto.subtle.exportKey("raw", contentKey);
   const contentIv = crypto.getRandomValues(new Uint8Array(12));
@@ -457,7 +464,7 @@ async function createEnvelope(text, recipient) {
   return { envelope, signature: bytesToBase64(signature) };
 }
 async function verifyMessage(message) {
-  const sender = message.senderId === state.user.id ? state.user : state.contacts.find((c) => c.id === message.senderId);
+  const sender = message.senderId === state.user.id ? state.user : (state.contacts.find((c) => c.id === message.senderId) || state.groupDirectory.find((c) => c.id === message.senderId));
   if (!sender?.signingPublicKey) return false;
   const key = await crypto.subtle.importKey("jwk", sender.signingPublicKey, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
   return crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, base64ToBytes(message.signature), encoder.encode(canonicalEnvelope(message.envelope)));
@@ -506,14 +513,14 @@ function showApp(user) {
   el.subscriptionMeterBar.className = user.subscriptionState === "expired" ? "expired" : user.subscriptionState === "expiring" ? "expiring" : "";
   el.currentRole.textContent = roleName(user.role);
   const isAdmin = ["admin", "super_admin"].includes(user.role); el.adminPanel.classList.toggle("hidden", !isAdmin);
-  if (user.status === "active" && user.subscriptionState !== "expired") loadContacts(); else el.contactsList.innerHTML = `<p class="muted">${user.subscriptionState === "expired" ? "Подписка истекла. Переписка временно недоступна, но поддержка работает." : "Аккаунт ожидает подтверждения администратора."}</p>`;
+  if (user.status === "active" && user.subscriptionState !== "expired") { loadContacts(); loadGroups(); } else el.contactsList.innerHTML = `<p class="muted">${user.subscriptionState === "expired" ? "Подписка истекла. Переписка временно недоступна, но поддержка работает." : "Аккаунт ожидает подтверждения администратора."}</p>`;
   loadNotifications(); loadSupport(); loadDevices(); loadProfile(); installSecurityControls(); setTimeout(offerPushSetup,700); if(("Notification" in window&&Notification.permission==="granted"))enableWebPush().catch(()=>null);
   if (isAdmin) loadAdmin(); clearInterval(state.pollingTimer);
   connectRealtime();
   const sharedFibroId=new URLSearchParams(location.search).get("add");
   if(sharedFibroId&&el.contactFibroId){el.contactFibroId.value=sharedFibroId;window.FibroRouter?.open("chats",{writeHash:false});history.replaceState(null,"",location.pathname+location.hash);}
   else window.FibroRouter?.open(window.FibroRouter.current()||"chats",{writeHash:false});
-  state.pollingTimer = setInterval(async () => { try { await api("/api/presence", { method: "POST" }); if (!state.realtimeConnected && state.user?.status === "active" && state.user?.subscriptionState !== "expired") { await loadContacts(false); if (state.activeContact) await loadMessages(false); } await loadNotifications(false); } catch {} }, 15000);
+  state.pollingTimer = setInterval(async () => { try { await api("/api/presence", { method: "POST" }); if (!state.realtimeConnected && state.user?.status === "active" && state.user?.subscriptionState !== "expired") { await loadContacts(false); if (state.activeContact||state.activeGroup) await loadMessages(false); } await loadNotifications(false); } catch {} }, 15000);
 }
 async function restoreSession() {
   if (!state.token) return;
@@ -584,16 +591,65 @@ async function loadProfile(){
 async function renderBlocked(){if(!el.blockedList)return;try{const data=await api("/api/blocked",{method:"GET"});el.blockedList.innerHTML=data.blocked.map(user=>`<div class="blocked-row"><span>${avatarMarkup(user,"small")}<strong>${escapeHtml(user.displayName||user.nickname||"Пользователь")}</strong></span><button class="mini-button" data-unblock-id="${user.id}" type="button">Разблокировать</button></div>`).join("")||'<p class="muted">Список пуст.</p>';}catch(error){el.blockedList.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;}}
 async function saveProfile(){el.profileMessage.textContent="Сохранение…";try{const body={displayName:el.profileDisplayName.value,bio:el.profileBio.value,privacy:{profileVisibility:el.privacyProfile.value,firstMessage:el.privacyFirstMessage.value,fibroIdDiscovery:el.privacyDiscovery.value,contactInvites:el.privacyInvites.value}};if(state.pendingAvatarDataUrl!==undefined)body.avatarDataUrl=state.pendingAvatarDataUrl;const data=await api("/api/profile",{method:"PUT",body:JSON.stringify(body)});state.pendingAvatarDataUrl=undefined;state.user={...state.user,...data.user};el.profileNickname.textContent=data.user.displayName||data.user.nickname;el.profileMessage.textContent="Профиль сохранён.";el.profileMessage.className="message success";await loadProfile();await loadContacts();}catch(error){el.profileMessage.textContent=error.message;el.profileMessage.className="message";}}
 async function contactAction(id,action){const labels={delete:"Удалить контакт?",block:"Заблокировать пользователя и удалить контакт?"};if(labels[action]&&!confirm(labels[action]))return;await api(`/api/contacts/${id}/${action}`,{method:"POST"});if(state.activeContact?.id===id){state.activeContact=null;el.chatView.classList.add("hidden");el.emptyChat.classList.remove("hidden");}await loadContacts();await renderBlocked();}
+
+async function loadGroups(){
+  if(!el.groupsList)return;
+  try{const data=await api("/api/groups",{method:"GET"});state.groups=data.groups||[];if(state.activeGroup){state.activeGroup=state.groups.find(g=>g.id===state.activeGroup.id)||null;}renderGroups();}
+  catch(error){el.groupsList.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;}
+}
+function renderGroups(){
+  if(!el.groupsList)return;
+  el.groupsList.innerHTML=state.groups.map(group=>{const active=state.activeGroup?.id===group.id;const initial=escapeHtml((group.name||"Г").slice(0,1).toUpperCase());return `<button class="contact group-contact ${active?"active":""}" data-group-id="${group.id}" type="button"><span class="contact-main"><span class="group-avatar">${initial}</span><span class="contact-copy"><span class="contact-title"><strong>${escapeHtml(group.name)}</strong><time>${group.memberCount}</time></span><small><span>${group.memberCount} участников</span><span class="contact-secure">E2EE fan-out</span></small></span></span><span class="contact-chevron">›</span></button>`;}).join("")||'<div class="conversation-empty"><span>◎</span><strong>Групп пока нет</strong><p>Создайте защищённую группу из своих контактов.</p></div>';
+}
+function openGroupModal(){
+  if(!el.groupModal)return;el.groupFormMessage.textContent="";el.groupName.value="";el.groupDescription.value="";
+  el.groupMemberPicker.innerHTML=state.contacts.map(c=>`<label class="group-member-option"><input type="checkbox" value="${c.id}">${avatarMarkup(c,"small")}<span><strong>${escapeHtml(c.displayName||c.nickname)}</strong><small>${escapeHtml(c.fibroId||"")}</small></span></label>`).join("")||'<p class="muted">Сначала добавьте контакты.</p>';
+  el.groupModal.classList.remove("hidden");el.groupName.focus();
+}
+function closeGroupModal(){el.groupModal?.classList.add("hidden");}
+async function createGroup(event){
+  event.preventDefault();const memberIds=[...el.groupMemberPicker.querySelectorAll('input:checked')].map(x=>x.value);el.groupFormMessage.textContent="Создание…";
+  try{const data=await api("/api/groups",{method:"POST",body:JSON.stringify({name:el.groupName.value,description:el.groupDescription.value,memberIds})});closeGroupModal();await loadGroups();await openGroup(data.group.id);}
+  catch(error){el.groupFormMessage.textContent=error.message;}
+}
+async function openGroup(groupId){
+  state.activeGroup=state.groups.find(g=>g.id===groupId)||null;if(!state.activeGroup)return;state.activeContact=null;state.editingMessage=null;state.pendingReply=null;state.messageSearch="";renderContacts();renderGroups();
+  el.chatName.textContent=state.activeGroup.name;el.chatPresence.textContent=`${state.activeGroup.memberCount} участников`;if(el.groupSettingsButton)el.groupSettingsButton.classList.remove("hidden");el.emptyChat.classList.add("hidden");el.chatView.classList.remove("hidden");document.body.classList.add("chat-open");
+  if(el.attachmentButton)el.attachmentButton.classList.add("hidden");if(el.voiceButton)el.voiceButton.classList.add("hidden");await loadMessages(true);el.messageInput.focus();
+}
+
+async function openGroupSettings(){
+  if(!state.activeGroup||!el.groupSettingsModal)return;
+  el.groupSettingsMessage.textContent="Загрузка…";el.groupSettingsModal.classList.remove("hidden");
+  try{const data=await api(`/api/groups/${state.activeGroup.id}`,{method:"GET"});const group=data.group;state.activeGroup={...state.activeGroup,...group,memberCount:group.members.length};state.groupDirectory=group.members.map(m=>m.user);const me=group.members.find(m=>m.userId===state.user.id);const canEdit=["owner","admin"].includes(me?.role);
+    el.groupSettingsName.value=group.name||"";el.groupSettingsDescription.value=group.description||"";el.groupSettingsName.disabled=!canEdit;el.groupSettingsDescription.disabled=!canEdit;
+    const memberIds=new Set(group.members.map(m=>m.userId));const candidates=state.contacts.filter(c=>!memberIds.has(c.id));el.groupAddMember.innerHTML=canEdit?`<option value="">Добавить участника…</option>${candidates.map(c=>`<option value="${c.id}">${escapeHtml(c.displayName||c.nickname)}</option>`).join("")}`:'<option value="">Нет прав на добавление</option>';el.groupAddMember.disabled=!canEdit||!candidates.length;
+    el.groupMembersList.innerHTML=group.members.map(m=>{const mine=m.userId===state.user.id;const canRole=me?.role==="owner"&&m.role!=="owner";const canRemove=!mine&&["owner","admin"].includes(me?.role)&&m.role!=="owner";return `<div class="group-member-row"><span>${avatarMarkup(m.user,"small")}<span><strong>${escapeHtml(m.user.displayName||m.user.nickname)}</strong><small>${m.role==="owner"?"Владелец":m.role==="admin"?"Администратор":"Участник"}</small></span></span><span class="group-member-actions">${canRole?`<select data-group-role="${m.userId}"><option value="member" ${m.role==="member"?"selected":""}>Участник</option><option value="admin" ${m.role==="admin"?"selected":""}>Администратор</option></select>`:""}${canRemove?`<button type="button" class="danger-button" data-group-remove="${m.userId}">Удалить</button>`:""}</span></div>`}).join("");
+    el.groupDeleteButton.classList.toggle("hidden",me?.role!=="owner");el.groupLeaveButton.classList.toggle("hidden",me?.role==="owner");el.groupSettingsMessage.textContent=group.description||"";
+  }catch(error){el.groupSettingsMessage.textContent=error.message;}
+}
+function closeGroupSettings(){el.groupSettingsModal?.classList.add("hidden");}
+async function saveGroupSettings(event){event.preventDefault();try{await api(`/api/groups/${state.activeGroup.id}`,{method:"PATCH",body:JSON.stringify({name:el.groupSettingsName.value,description:el.groupSettingsDescription.value})});el.groupSettingsMessage.textContent="Сохранено.";await loadGroups();await openGroup(state.activeGroup.id);}catch(error){el.groupSettingsMessage.textContent=error.message;}}
+
+async function groupMemberDirectory(){const data=await api(`/api/groups/${state.activeGroup.id}`,{method:"GET"});state.groupDirectory=data.group.members.map(m=>m.user);return state.groupDirectory;}
 async function loadContacts(render = true) { try { const data = await api("/api/contacts", { method: "GET" }); state.contacts = data.contacts; if (state.activeContact) { state.activeContact = state.contacts.find((c) => c.id === state.activeContact.id) || null; if (state.activeContact) updateChatHeader(); } if (!render) return renderContacts(); renderContacts(); } catch (error) { el.contactsList.innerHTML = `<p class="message">${escapeHtml(error.message)}</p>`; } }
-function renderContacts() { el.contactsList.innerHTML = state.contacts.map((contact) => `<div class="contact-wrap"><button class="contact ${state.activeContact?.id === contact.id ? "active" : ""}" data-contact-id="${contact.id}" type="button"><span class="contact-main">${avatarMarkup(contact)}<span><strong>${escapeHtml(contact.displayName||contact.nickname)}</strong><small>${contact.online ? "В сети" : "Не в сети"} · 🔒${contact.lastMessageAt ? ` · ${timeText(contact.lastMessageAt)}` : ""}</small></span></span><span class="contact-tail">${contact.unreadCount ? `<span class="unread-badge">${contact.unreadCount > 99 ? "99+" : contact.unreadCount}</span>` : ""}<span class="presence ${contact.online ? "online" : ""}"></span></span></button><div class="contact-actions"><button type="button" data-contact-action="delete" data-contact-target="${contact.id}">Удалить</button><button type="button" data-contact-action="block" data-contact-target="${contact.id}">Блок</button></div></div>`).join("") || '<p class="muted">Контактов пока нет. Добавьте человека по его полному Fibro ID.</p>'; }
+function renderContacts() {
+  el.contactsList.innerHTML = state.contacts.map((contact) => {
+    const active = state.activeContact?.id === contact.id;
+    const name = contact.displayName || contact.nickname;
+    const activity = contact.lastMessageAt ? timeText(contact.lastMessageAt) : "Новый диалог";
+    return `<div class="contact-wrap"><button class="contact ${active ? "active" : ""}" data-contact-id="${contact.id}" type="button" aria-current="${active ? "page" : "false"}"><span class="contact-main">${avatarMarkup(contact)}<span class="contact-copy"><span class="contact-title"><strong>${escapeHtml(name)}</strong><time>${escapeHtml(activity)}</time></span><small><span class="contact-state ${contact.online ? "online" : ""}">${contact.online ? "В сети" : "Не в сети"}</span><span class="contact-secure" title="Защищённый диалог">Защищено</span></small></span></span><span class="contact-tail">${contact.unreadCount ? `<span class="unread-badge">${contact.unreadCount > 99 ? "99+" : contact.unreadCount}</span>` : ""}<span class="contact-chevron" aria-hidden="true">›</span></span></button><div class="contact-actions"><button type="button" data-contact-action="delete" data-contact-target="${contact.id}">Удалить</button><button type="button" data-contact-action="block" data-contact-target="${contact.id}">Блокировать</button></div></div>`;
+  }).join("") || '<div class="conversation-empty"><span>✦</span><strong>Здесь появятся диалоги</strong><p>Добавьте человека по полному Fibro ID, чтобы начать защищённое общение.</p></div>';
+}
 function updateChatHeader() { if (!state.activeContact) return; el.chatName.textContent = state.activeContact.displayName || state.activeContact.nickname; el.chatPresence.textContent = state.activeContact.online ? "В сети" : "Не в сети"; }
-async function openChat(contactId) { state.activeContact = state.contacts.find((contact) => contact.id === contactId) || null; if (!state.activeContact) return; renderContacts(); updateChatHeader(); el.emptyChat.classList.add("hidden"); el.chatView.classList.remove("hidden"); document.body.classList.add("chat-open"); await loadMessages(true); await loadContacts(false); el.messageInput.focus(); }
+async function openChat(contactId) { state.activeGroup=null;if(el.groupSettingsButton)el.groupSettingsButton.classList.add("hidden");if(el.attachmentButton)el.attachmentButton.classList.remove("hidden");if(el.voiceButton)el.voiceButton.classList.remove("hidden"); state.activeContact = state.contacts.find((contact) => contact.id === contactId) || null; if (!state.activeContact) return; state.editingMessage=null;state.messageSearch="";if(el.chatSearchInput)el.chatSearchInput.value="";renderEditPreview();renderContacts(); updateChatHeader(); el.emptyChat.classList.add("hidden"); el.chatView.classList.remove("hidden"); document.body.classList.add("chat-open"); await loadMessages(true); await loadContacts(false); el.messageInput.focus(); }
 function formatBytes(value){const bytes=Number(value)||0;if(bytes<1024)return `${bytes} Б`;if(bytes<1024*1024)return `${(bytes/1024).toFixed(1)} КБ`;return `${(bytes/1024/1024).toFixed(1)} МБ`;}
 function parseMessageContent(text){
   try{const value=JSON.parse(text);if(value&&Number(value.version)>=1&&["attachment","voice","text"].includes(value.type))return value;}catch{}
   return{version:2,type:"text",text};
 }
 function messageExcerpt(content){if(content.type==="voice")return "🎙️ Голосовое сообщение";if(content.type==="attachment")return `📎 ${content.attachment?.name||"Файл"}`;return String(content.text||"").trim().slice(0,100)||"Сообщение";}
+function renderEditPreview(){if(!el.editPreview)return;const edit=state.editingMessage;if(!edit){el.editPreview.classList.add("hidden");el.editPreview.innerHTML="";return;}el.editPreview.innerHTML=`<span><strong>Редактирование</strong> · ${escapeHtml(edit.excerpt)}</span><button type="button" data-cancel-edit aria-label="Отменить редактирование">×</button>`;el.editPreview.classList.remove("hidden");}
 function renderReplyPreview(){if(!el.replyPreview)return;const reply=state.pendingReply;if(!reply){el.replyPreview.classList.add("hidden");el.replyPreview.innerHTML="";return;}el.replyPreview.innerHTML=`<span><strong>Ответ</strong> · ${escapeHtml(reply.excerpt)}</span><button type="button" data-cancel-reply aria-label="Отменить ответ">×</button>`;el.replyPreview.classList.remove("hidden");}
 function renderPendingAttachment(){if(!el.attachmentPreview)return;const file=state.pendingAttachment;if(!file){el.attachmentPreview.classList.add("hidden");el.attachmentPreview.innerHTML="";return;}el.attachmentPreview.innerHTML=`<span>📎 ${escapeHtml(file.name)} · ${formatBytes(file.size)}</span><button type="button" data-remove-attachment aria-label="Убрать вложение">×</button>`;el.attachmentPreview.classList.remove("hidden");}
 function formatDuration(seconds){const value=Math.max(0,Math.round(Number(seconds)||0));return `${Math.floor(value/60)}:${String(value%60).padStart(2,"0")}`;}
@@ -605,32 +661,45 @@ async function playVoice(button,attachment){try{if(button.dataset.audioUrl){cons
 function replyMarkup(reply){if(!reply)return"";return `<button class="reply-quote" type="button" data-scroll-message="${escapeHtml(reply.messageId||"")}"><strong>${escapeHtml(reply.author||"Сообщение")}</strong><small>${escapeHtml(reply.excerpt||"Исходное сообщение")}</small></button>`;}
 function contentMarkup(content){const quote=replyMarkup(content.reply);if(content.type==="attachment")return `${quote}${content.text?`<p>${escapeHtml(content.text)}</p>`:""}<div class="attachment-card"><strong>📎 ${escapeHtml(content.attachment.name||"Файл")}</strong><small>${escapeHtml(content.attachment.mimeType||"application/octet-stream")} · ${formatBytes(content.attachment.size)}</small><button class="attachment-download" type="button" data-attachment='${escapeHtml(JSON.stringify(content.attachment))}'>Скачать и расшифровать</button></div>`;if(content.type==="voice")return `${quote}${content.text?`<p>${escapeHtml(content.text)}</p>`:""}<div class="voice-card"><button class="voice-play" type="button" data-voice='${escapeHtml(JSON.stringify(content.attachment))}'>▶</button><div class="voice-track"><strong>Голосовое сообщение</strong><small>${formatDuration(content.duration)}</small></div></div>`;return `${quote}<p>${escapeHtml(content.text||"")}</p>`;}
 async function loadMessages(scroll = false) {
-  if (!state.activeContact) return;
-  try {
-    const data = await api(`/api/messages?with=${encodeURIComponent(state.activeContact.id)}`, { method: "GET" });
-    const rendered = await Promise.all(data.messages.map(async (message) => {
-      const mine = message.senderId === state.user.id;
-      const attempts = Number(message.deliveryAttempts) || 0;
-      const status = mine ? (message.readAt ? "Прочитано" : message.deliveredAt ? "Доставлено" : attempts > 1 ? `Повторная доставка · попытка ${attempts}` : "В очереди") : "";
-      try {
-        const text = await decryptMessage(message);const content=parseMessageContent(text);const excerpt=messageExcerpt(content);
-        return `<article class="bubble ${mine ? "mine" : ""}" id="message-${escapeHtml(message.id)}" data-message-id="${escapeHtml(message.id)}" data-message-excerpt="${escapeHtml(excerpt)}" data-message-author="${escapeHtml(mine?"Вы":state.activeContact.displayName||state.activeContact.nickname)}">${contentMarkup(content)}<div class="message-actions"><button class="reply-button" type="button" data-reply-message="${escapeHtml(message.id)}">↩ Ответить</button></div><div class="meta"><span class="lock-meta">🔒 Подпись проверена</span><span>${timeText(message.createdAt)}</span>${status ? `<span>${status}</span>` : ""}</div></article>`;
-      } catch (error) {return `<article class="bubble error"><p>[Не удалось расшифровать сообщение]</p><div class="meta"><span>${escapeHtml(error.message)}</span></div></article>`;}
+  const isGroup=Boolean(state.activeGroup);if(!state.activeContact&&!isGroup)return;setChatError("");
+  try{
+    const data=await api(isGroup?`/api/groups/${state.activeGroup.id}/messages`:`/api/messages?with=${encodeURIComponent(state.activeContact.id)}`,{method:"GET"});
+    let groupUsers=[];if(isGroup)groupUsers=await groupMemberDirectory();
+    const decrypted=await Promise.all(data.messages.map(async message=>{
+      const mine=message.senderId===state.user.id;if(message.deletedAt)return{message,mine,deleted:true,content:null,excerpt:"Сообщение удалено",searchText:""};
+      try{const clear=await decryptMessage(message);const content=parseMessageContent(clear);return{message,mine,deleted:false,content,excerpt:messageExcerpt(content),searchText:`${content.text||""}`.toLocaleLowerCase("ru-RU")};}
+      catch(error){return{message,mine,error,deleted:false,content:null,excerpt:"Недоступное сообщение",searchText:""};}
     }));
-    el.messagesList.innerHTML = rendered.join("") || '<p class="muted">Сообщений пока нет. Начни защищённый разговор первым.</p>';
-    const unreadIncoming = data.messages.filter((message) => message.recipientId === state.user.id && !message.readAt);
-    await Promise.all(unreadIncoming.map((message) => api(`/api/messages/${message.id}/read`, { method: "POST" }).catch(() => null)));
-    if (scroll || unreadIncoming.length) el.messagesList.scrollTop = el.messagesList.scrollHeight;
-  } catch (error) { setChatError(error.message); }
+    state.messageCache=decrypted;const query=state.messageSearch.trim().toLocaleLowerCase("ru-RU");const visible=query?decrypted.filter(item=>item.searchText.includes(query)):decrypted;if(el.chatSearchCount)el.chatSearchCount.textContent=query?String(visible.length):String(decrypted.length);
+    el.messagesList.innerHTML=visible.map(({message,mine,deleted,content,error})=>{
+      if(deleted)return `<article class="bubble ${mine?"mine":""}"><p>Сообщение удалено</p></article>`;
+      if(error)return `<article class="bubble error"><p>[Не удалось расшифровать сообщение]</p></article>`;
+      const sender=isGroup?groupUsers.find(u=>u.id===message.senderId):null;const author=isGroup&&!mine?`<span class="group-message-author">${escapeHtml(sender?.displayName||sender?.nickname||"Участник")}</span>`:"";
+      const actions=!isGroup?`<div class="message-actions"><button class="reply-button" type="button" data-reply-message="${escapeHtml(message.id)}">Ответить</button>${mine&&content.type==="text"?`<button class="reply-button" type="button" data-edit-message="${escapeHtml(message.id)}">Изменить</button>`:""}${mine?`<button class="reply-button danger-text" type="button" data-delete-message="${escapeHtml(message.id)}">Удалить</button>`:""}</div>`:"";
+      return `<article class="bubble ${mine?"mine":""}" id="message-${escapeHtml(message.id)}" data-message-id="${escapeHtml(message.id)}">${author}${contentMarkup(content)}${actions}<div class="meta"><span class="lock-meta" title="Сквозное шифрование"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2"/><rect x="5" y="10" width="14" height="10" rx="3"/></svg></span>${message.editedAt?`<span class="edited-meta">изменено</span>`:""}<time>${timeText(message.createdAt)}</time></div></article>`;
+    }).join("")||(query?'<p class="muted">Ничего не найдено.</p>':'<p class="muted">Сообщений пока нет.</p>');
+    if(!isGroup){const unreadIncoming=data.messages.filter(message=>message.recipientId===state.user.id&&!message.readAt);await Promise.all(unreadIncoming.map(message=>api(`/api/messages/${message.id}/read`,{method:"POST"}).catch(()=>null)));}
+    if(scroll)el.messagesList.scrollTop=el.messagesList.scrollHeight;
+  }catch(error){setChatError(error.message);}
 }
-async function sendMessage(event) {
-  event.preventDefault();if(!state.activeContact)return;const text=el.messageInput.value.trim();const file=state.pendingAttachment;const voice=state.pendingVoice;if(!text&&!file&&!voice)return;
-  el.messageInput.disabled=true;el.sendButton.disabled=true;if(el.attachmentButton)el.attachmentButton.disabled=true;if(el.voiceButton)el.voiceButton.disabled=true;setChatError("");
-  try{let payload={version:2,type:"text",text};if(file){const attachment=await encryptAndUploadAttachment(file,state.activeContact);payload={version:2,type:"attachment",text,attachment};}else if(voice){const extension=voice.blob.type.includes("ogg")?"ogg":voice.blob.type.includes("mp4")?"m4a":"webm";const voiceFile=new File([voice.blob],`voice-${Date.now()}.${extension}`,{type:voice.blob.type||"audio/webm"});const attachment=await encryptAndUploadAttachment(voiceFile,state.activeContact);payload={version:2,type:"voice",text,attachment,duration:voice.duration};}if(state.pendingReply)payload.reply=state.pendingReply;const encrypted=await createEnvelope(JSON.stringify(payload),state.activeContact);await api("/api/messages",{method:"POST",body:JSON.stringify({recipientId:state.activeContact.id,...encrypted})});el.messageInput.value="";state.pendingAttachment=null;state.pendingReply=null;if(state.pendingVoice?.url)URL.revokeObjectURL(state.pendingVoice.url);state.pendingVoice=null;if(el.attachmentInput)el.attachmentInput.value="";renderPendingAttachment();renderReplyPreview();renderVoicePreview();updateComposer();await loadMessages(true);await loadContacts(false);}
-  catch(error){setChatError(error.message);}
-  finally{el.messageInput.disabled=false;if(el.attachmentButton)el.attachmentButton.disabled=false;if(el.voiceButton)el.voiceButton.disabled=false;updateComposer();el.messageInput.focus();}
+async function sendMessage(event){
+  event.preventDefault();const isGroup=Boolean(state.activeGroup);if(!state.activeContact&&!isGroup)return;const text=el.messageInput.value.trim();const file=state.pendingAttachment;const voice=state.pendingVoice;if(!text&&!file&&!voice)return;
+  el.messageInput.disabled=true;el.sendButton.disabled=true;setChatError("");
+  try{
+    if(isGroup){
+      if(file||voice)throw new Error("В alpha6 групповые чаты пока поддерживают текстовые сообщения");
+      const members=await groupMemberDirectory();const messageId=uuidV4();const createdAt=new Date().toISOString();const payload=JSON.stringify({version:2,type:"text",text});const deliveries=[];
+      for(const member of members){const encrypted=await createEnvelope(payload,member,{messageId,createdAt});deliveries.push({recipientId:member.id,...encrypted});}
+      await api(`/api/groups/${state.activeGroup.id}/messages`,{method:"POST",body:JSON.stringify({deliveries})});
+    }else if(state.editingMessage){
+      if(file||voice)throw new Error("При редактировании можно изменить только текст");const payload={version:2,type:"text",text};const encrypted=await createEnvelope(JSON.stringify(payload),state.activeContact,{messageId:state.editingMessage.messageId,createdAt:state.editingMessage.createdAt});await api(`/api/messages/${state.editingMessage.messageId}`,{method:"PUT",body:JSON.stringify(encrypted)});state.editingMessage=null;renderEditPreview();
+    }else{
+      let payload={version:2,type:"text",text};if(file){const attachment=await encryptAndUploadAttachment(file,state.activeContact);payload={version:2,type:"attachment",text,attachment};}else if(voice){const extension=voice.blob.type.includes("ogg")?"ogg":voice.blob.type.includes("mp4")?"m4a":"webm";const voiceFile=new File([voice.blob],`voice-${Date.now()}.${extension}`,{type:voice.blob.type||"audio/webm"});const attachment=await encryptAndUploadAttachment(voiceFile,state.activeContact);payload={version:2,type:"voice",text,attachment,duration:voice.duration};}if(state.pendingReply)payload.reply=state.pendingReply;const encrypted=await createEnvelope(JSON.stringify(payload),state.activeContact);await api("/api/messages",{method:"POST",body:JSON.stringify({recipientId:state.activeContact.id,...encrypted})});
+    }
+    el.messageInput.value="";state.pendingAttachment=null;state.pendingReply=null;if(state.pendingVoice?.url)URL.revokeObjectURL(state.pendingVoice.url);state.pendingVoice=null;if(el.attachmentInput)el.attachmentInput.value="";renderPendingAttachment();renderReplyPreview();renderVoicePreview();updateComposer();await loadMessages(true);if(!isGroup)await loadContacts(false);
+  }catch(error){setChatError(error.message);}finally{el.messageInput.disabled=false;updateComposer();el.messageInput.focus();}
 }
-function updateComposer(){const length=el.messageInput.value.length;el.charCounter.textContent=`${length}/4000`;el.sendButton.disabled=el.messageInput.disabled||(!length&&!state.pendingAttachment&&!state.pendingVoice)||!state.activeContact;el.messageInput.style.height="auto";el.messageInput.style.height=`${Math.min(el.messageInput.scrollHeight,132)}px`;}
+function updateComposer(){const length=el.messageInput.value.length;el.charCounter.textContent=`${length}/4000`;el.sendButton.disabled=el.messageInput.disabled||(!length&&!state.pendingAttachment&&!state.pendingVoice)||(!state.activeContact&&!state.activeGroup);el.messageInput.style.height="auto";el.messageInput.style.height=`${Math.min(el.messageInput.scrollHeight,132)}px`;}
 function closeMobileChat() { document.body.classList.remove("chat-open"); }
 async function toggleVoiceRecording(){
   if(state.mediaRecorder&&state.mediaRecorder.state==="recording"){state.mediaRecorder.stop();return;}
@@ -722,10 +791,10 @@ el.messageForm.addEventListener("submit", sendMessage);
 if(el.attachmentButton)el.attachmentButton.addEventListener("click",()=>el.attachmentInput?.click());
 if(el.attachmentInput)el.attachmentInput.addEventListener("change",()=>{const file=el.attachmentInput.files?.[0]||null;if(file&&file.size>10*1024*1024){setChatError("Максимальный размер вложения — 10 МБ");el.attachmentInput.value="";state.pendingAttachment=null;}else{state.pendingAttachment=file;setChatError("");}renderPendingAttachment();updateComposer();});
 if(el.attachmentPreview)el.attachmentPreview.addEventListener("click",event=>{if(event.target.closest("[data-remove-attachment]")){state.pendingAttachment=null;el.attachmentInput.value="";renderPendingAttachment();updateComposer();}});
-if(el.replyPreview)el.replyPreview.addEventListener("click",event=>{if(event.target.closest("[data-cancel-reply]")){state.pendingReply=null;renderReplyPreview();updateComposer();}});
+if(el.replyPreview)el.replyPreview.addEventListener("click",event=>{if(event.target.closest("[data-cancel-reply]")){state.pendingReply=null;renderReplyPreview();updateComposer();}});if(el.editPreview)el.editPreview.addEventListener("click",event=>{if(event.target.closest("[data-cancel-edit]")){state.editingMessage=null;el.messageInput.value="";renderEditPreview();updateComposer();}});
 if(el.voicePreview)el.voicePreview.addEventListener("click",event=>{if(event.target.closest("[data-remove-voice]")){if(state.pendingVoice?.url)URL.revokeObjectURL(state.pendingVoice.url);state.pendingVoice=null;renderVoicePreview();updateComposer();}});
 if(el.voiceButton)el.voiceButton.addEventListener("click",toggleVoiceRecording);
-if(el.messagesList)el.messagesList.addEventListener("click",event=>{const attachmentButton=event.target.closest("[data-attachment]");if(attachmentButton){try{downloadAttachment(attachmentButton,JSON.parse(attachmentButton.dataset.attachment));}catch{setChatError("Некорректные данные вложения");}return;}const voiceButton=event.target.closest("[data-voice]");if(voiceButton){try{playVoice(voiceButton,JSON.parse(voiceButton.dataset.voice));}catch{setChatError("Некорректное голосовое сообщение");}return;}const replyButton=event.target.closest("[data-reply-message]");if(replyButton){const bubble=replyButton.closest("[data-message-id]");state.pendingReply={messageId:bubble.dataset.messageId,excerpt:bubble.dataset.messageExcerpt,author:bubble.dataset.messageAuthor};renderReplyPreview();el.messageInput.focus();return;}const quote=event.target.closest("[data-scroll-message]");if(quote){const target=document.getElementById(`message-${CSS.escape(quote.dataset.scrollMessage)}`);if(target){target.scrollIntoView({behavior:"smooth",block:"center"});target.classList.remove("message-highlight");requestAnimationFrame(()=>target.classList.add("message-highlight"));}else setChatError("Исходное сообщение недоступно.");}});
+if(el.messagesList)el.messagesList.addEventListener("click",async event=>{const attachmentButton=event.target.closest("[data-attachment]");if(attachmentButton){try{downloadAttachment(attachmentButton,JSON.parse(attachmentButton.dataset.attachment));}catch{setChatError("Некорректные данные вложения");}return;}const voiceButton=event.target.closest("[data-voice]");if(voiceButton){try{playVoice(voiceButton,JSON.parse(voiceButton.dataset.voice));}catch{setChatError("Некорректное голосовое сообщение");}return;}const replyButton=event.target.closest("[data-reply-message]");if(replyButton){const bubble=replyButton.closest("[data-message-id]");state.pendingReply={messageId:bubble.dataset.messageId,excerpt:bubble.dataset.messageExcerpt,author:bubble.dataset.messageAuthor};state.editingMessage=null;renderEditPreview();renderReplyPreview();el.messageInput.focus();return;}const editButton=event.target.closest("[data-edit-message]");if(editButton){const item=state.messageCache.find(x=>x.message.id===editButton.dataset.editMessage);if(item?.content?.type==="text"){state.editingMessage={messageId:item.message.id,createdAt:item.message.createdAt,excerpt:item.excerpt};state.pendingReply=null;renderReplyPreview();renderEditPreview();el.messageInput.value=item.content.text||"";updateComposer();el.messageInput.focus();}return;}const deleteButton=event.target.closest("[data-delete-message]");if(deleteButton){if(!confirm("Удалить сообщение у всех участников диалога?"))return;try{await api(`/api/messages/${deleteButton.dataset.deleteMessage}`,{method:"DELETE"});if(state.editingMessage?.messageId===deleteButton.dataset.deleteMessage){state.editingMessage=null;renderEditPreview();el.messageInput.value="";}await loadMessages(false);await loadContacts(false);}catch(error){setChatError(error.message);}return;}const quote=event.target.closest("[data-scroll-message]");if(quote){const target=document.getElementById(`message-${CSS.escape(quote.dataset.scrollMessage)}`);if(target){target.scrollIntoView({behavior:"smooth",block:"center"});target.classList.remove("message-highlight");requestAnimationFrame(()=>target.classList.add("message-highlight"));}else setChatError("Исходное сообщение недоступно.");}});
 el.messageInput.addEventListener("input", updateComposer);
 el.messageInput.addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); if (!el.sendButton.disabled) el.messageForm.requestSubmit(); } });
 el.backToContacts.addEventListener("click", closeMobileChat);
@@ -788,6 +857,22 @@ el.usersList.addEventListener("click", async (event) => {
   } catch (error) { alert(error.message); button.disabled = false; }
 });
 
+
+if(el.groupsList)el.groupsList.addEventListener("click",event=>{const button=event.target.closest("[data-group-id]");if(button)openGroup(button.dataset.groupId);});
+if(el.createGroupButton)el.createGroupButton.addEventListener("click",openGroupModal);
+if(el.groupModalClose)el.groupModalClose.addEventListener("click",closeGroupModal);
+if(el.groupForm)el.groupForm.addEventListener("submit",createGroup);
+if(el.groupModal)el.groupModal.addEventListener("click",event=>{if(event.target===el.groupModal)closeGroupModal();});
+if(el.groupSettingsButton)el.groupSettingsButton.addEventListener("click",openGroupSettings);
+if(el.groupSettingsClose)el.groupSettingsClose.addEventListener("click",closeGroupSettings);
+if(el.groupSettingsModal)el.groupSettingsModal.addEventListener("click",event=>{if(event.target===el.groupSettingsModal)closeGroupSettings();});
+if(el.groupSettingsForm)el.groupSettingsForm.addEventListener("submit",saveGroupSettings);
+if(el.groupAddMember)el.groupAddMember.addEventListener("change",async()=>{const userId=el.groupAddMember.value;if(!userId)return;try{await api(`/api/groups/${state.activeGroup.id}/members`,{method:"POST",body:JSON.stringify({userId})});await loadGroups();await openGroupSettings();}catch(error){el.groupSettingsMessage.textContent=error.message;}});
+if(el.groupMembersList)el.groupMembersList.addEventListener("change",async event=>{const select=event.target.closest("[data-group-role]");if(!select)return;try{await api(`/api/groups/${state.activeGroup.id}/members/${select.dataset.groupRole}`,{method:"PATCH",body:JSON.stringify({role:select.value})});await openGroupSettings();}catch(error){el.groupSettingsMessage.textContent=error.message;}});
+if(el.groupMembersList)el.groupMembersList.addEventListener("click",async event=>{const button=event.target.closest("[data-group-remove]");if(!button||!confirm("Удалить участника из группы?"))return;try{await api(`/api/groups/${state.activeGroup.id}/members/${button.dataset.groupRemove}`,{method:"DELETE"});await loadGroups();await openGroupSettings();}catch(error){el.groupSettingsMessage.textContent=error.message;}});
+if(el.groupLeaveButton)el.groupLeaveButton.addEventListener("click",async()=>{if(!confirm("Покинуть группу?"))return;await api(`/api/groups/${state.activeGroup.id}/members/${state.user.id}`,{method:"DELETE"});closeGroupSettings();state.activeGroup=null;el.chatView.classList.add("hidden");el.emptyChat.classList.remove("hidden");await loadGroups();});
+if(el.groupDeleteButton)el.groupDeleteButton.addEventListener("click",async()=>{if(!confirm("Удалить группу и всю историю сообщений? Это действие необратимо."))return;await api(`/api/groups/${state.activeGroup.id}`,{method:"DELETE"});closeGroupSettings();state.activeGroup=null;el.chatView.classList.add("hidden");el.emptyChat.classList.remove("hidden");await loadGroups();});
+
 el.deviceName.value = localStorage.getItem("fibrochat_device_name") || guessedDeviceName();
 el.deviceName.addEventListener("change",()=>localStorage.setItem("fibrochat_device_name",el.deviceName.value.trim()));
 registerFibroServiceWorker();
@@ -813,3 +898,7 @@ if(window.visualViewport){
   window.visualViewport.addEventListener("scroll",syncVisualViewport,{passive:true});
 }
 syncVisualViewport();
+
+if(el.chatSearchToggle)el.chatSearchToggle.addEventListener("click",()=>{el.chatSearch.classList.toggle("hidden");if(!el.chatSearch.classList.contains("hidden"))el.chatSearchInput.focus();});
+if(el.chatSearchClose)el.chatSearchClose.addEventListener("click",()=>{state.messageSearch="";el.chatSearchInput.value="";el.chatSearch.classList.add("hidden");loadMessages(false);});
+if(el.chatSearchInput)el.chatSearchInput.addEventListener("input",()=>{state.messageSearch=el.chatSearchInput.value;loadMessages(false);});

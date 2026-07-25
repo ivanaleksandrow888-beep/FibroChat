@@ -117,3 +117,11 @@ See `RELEASE_NOTES_0.6.0.md`.
 - Добавлены гудки исходящего вызова и рингтон входящего вызова.
 - Добавлены тайм-ауты, сетевые статусы и диагностика WebRTC.
 - Добавлена настраиваемая TURN-конфигурация через окружение.
+
+## 0.7.0-alpha7.4
+
+- Bottom navigation restored for desktop and mobile.
+- Full-viewport application shell without unused outer space.
+- Added reserved safe space so pages cannot overlap navigation controls.
+- Improved responsive profile, events, settings and chats layouts.
+- Added reduced-motion aware page transition and route scroll reset.

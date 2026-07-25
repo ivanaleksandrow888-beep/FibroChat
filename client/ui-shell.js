@@ -105,7 +105,7 @@
 
   main.append(chatsPage,profilePage,notificationsPage,settingsPage);
   appView.replaceChildren(rail,main);
-  appView.classList.add("workspace-v050","workspace-alpha3");
+  appView.classList.add("workspace-v050","workspace-alpha3","workspace-alpha74");
 
   const buttons=[...nav.querySelectorAll("[data-page]")];
   const pages=[...main.querySelectorAll(".app-page")];
@@ -114,6 +114,8 @@
     buttons.forEach(b=>b.classList.toggle("active",b.dataset.page===name));
     pages.forEach(p=>p.classList.toggle("active",p.dataset.page===name));
     document.body.dataset.appPage=name;
+    const activePage=pages.find(page=>page.dataset.page===name);
+    if(activePage)activePage.scrollTop=0;
     if(writeHash&&location.hash!==`#/${name}`)history.replaceState(null,"",`#/${name}`);
     if(name!=="chats")document.body.classList.remove("chat-open");
   }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0-alpha7.6
+- Messenger Experience chat polish with date separators and progressive history rendering.
+- Multi-file encrypted attachments (up to 6 per message), desktop drag & drop, and decrypted image/video/PDF preview.
+- Voice-message waveform UI and 1× / 1.5× / 2× playback speed.
+- Realtime “typing” and “recording voice” activity for direct chats.
+- Search expanded to decrypted text, attachment names, group sender names and message dates.
+- Service Worker and application version updated to Alpha 7.6.
+
 ## 0.7.0-alpha7.5
 - Smart QR Invitations и очередь административного одобрения.
 - Автоподстановка инвайта после сканирования QR.

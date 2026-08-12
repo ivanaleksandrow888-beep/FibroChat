@@ -344,6 +344,9 @@ async function handleApi(req,res,pathname,searchParams){
   if(pathname==="/api/network/public"&&req.method==="GET"){const network=readObject(NETWORK_FILE,{});sendJson(res,200,{ok:true,network:publicNetwork(network,req)});return true;}
   if(pathname==="/api/network/profile"&&req.method==="GET"){sendDownloadJson(res,`${readObject(NETWORK_FILE,{}).networkId||"fibrochat"}.fibronet.json`,createNetworkProfile(req));return true;}
   if(pathname==="/api/events"&&req.method==="GET"){const auth=requireAuth(req,res);if(!auth)return true;openEventStream(req,res,auth);return true;}
+  if(pathname==="/api/typing"&&req.method==="POST"){
+    const auth=requireAuth(req,res);if(!auth)return true;const body=await readBody(req);const recipientId=String(body.recipientId||"");const kind=body.kind==="recording"?"recording":"typing";const active=body.active!==false;const target=readJson(USERS_FILE).find(u=>u.id===recipientId&&u.status==="active");if(!target||!directContactExists(auth.user,target)||isBlockedBetween(auth.user,target))return sendJson(res,403,{ok:false,error:"Недоступный контакт"}),true;sendEvent(recipientId,"chat:activity",{fromUserId:auth.user.id,kind,active});sendJson(res,200,{ok:true});return true;
+  }
   if(pathname==="/api/calls/config"&&req.method==="GET"){
     const auth=requireAuth(req,res);if(!auth)return true;
     const iceServers=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}];

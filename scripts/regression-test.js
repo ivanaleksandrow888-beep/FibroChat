@@ -7,8 +7,8 @@ const html=read("client/index.html");
 const application=read("server/application.js");
 const sw=read("client/sw.js");
 const styles=read("client/style.css");
-assert(client.includes('CLIENT_VERSION = "0.7.0-alpha7.6"'));
-assert(html.includes('Messenger Experience v0.7.0-alpha7.6'));
+assert(client.includes('CLIENT_VERSION = "0.7.0-alpha7.6.1"'));
+assert(html.includes('Messenger Experience v0.7.0-alpha7.6.1'));
 assert(html.includes('id="group-settings-modal"'));
 assert(client.includes('class="edited-meta">изменено'));
 assert(client.includes('data-group-role'));
@@ -16,7 +16,7 @@ assert(application.includes('GROUP_MEMBER_ADDED'));
 assert(application.includes('GROUP_DELETED'));
 assert(application.includes('req.method==="PUT"'));
 assert(application.includes('message.editedAt'));
-assert(sw.includes('fibrochat-shell-v0.7.0-alpha7.6'));
+assert(sw.includes('fibrochat-shell-v0.7.0-alpha7.6.1'));
 assert.ok(application.includes('/api/calls/signal'), 'Call signaling endpoint is missing');
 assert.ok(application.includes('calls.audio.webrtc.v1'), 'Call capability is missing');
 assert.ok(client.includes('startAudioCall'), 'Outgoing audio call client is missing');
@@ -46,4 +46,10 @@ assert.ok(client.includes('data-load-older'), "Lazy message window control is mi
 assert.ok(application.includes('/api/typing'), "Typing activity endpoint is missing");
 assert.ok(client.includes('chat:activity'), "Typing realtime event is missing");
 assert.ok(styles.includes('Messenger Experience'), "Alpha 7.6 styles are missing");
-console.log("Alpha 3–7.6 regression assertions: true");
+
+// Alpha 7.6.1: super admin lifetime subscription must be enforced server-side and visible client-side.
+assert(application.includes('if(user.role==="super_admin") return "active"'));
+assert(application.includes('auth.user.role!=="super_admin"&&auth.user.subscriptionEndsAt'));
+assert(application.includes('subscriptionLifetime:user.role==="super_admin"'));
+assert(client.includes('Подписка: бессрочно'));
+console.log("Alpha 3–7.6.1 regression assertions: true");

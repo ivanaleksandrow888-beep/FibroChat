@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.7.0-alpha7.6";
+const CLIENT_VERSION = "0.7.0-alpha7.6.1";
 const CLIENT_PROTOCOL = "1.2";
 
 const state = {
@@ -517,9 +517,15 @@ function showApp(user) {
   state.user = user; localStorage.setItem("fibrochat_last_user_id",user.id); el.authView.classList.add("hidden"); el.appView.classList.remove("hidden");
   el.profileNickname.textContent = user.displayName || user.nickname; if(el.profileFibroId)el.profileFibroId.textContent=user.fibroId||"—"; el.profileStatus.textContent = `${statusName(user.status)} · ключи ${user.keysConfigured ? "настроены" : "не настроены"}`;
   const days = Number(user.subscriptionDaysRemaining || 0);
-  el.profileSubscription.textContent = user.subscriptionState === "expired" ? "Подписка истекла — чат заблокирован" : `Подписка до ${dateText(user.subscriptionEndsAt)} · осталось ${days} дн.`;
-  el.subscriptionMeterBar.style.width = `${Math.max(0, Math.min(100, (days / 30) * 100))}%`;
-  el.subscriptionMeterBar.className = user.subscriptionState === "expired" ? "expired" : user.subscriptionState === "expiring" ? "expiring" : "";
+  if (user.subscriptionLifetime || user.role === "super_admin") {
+    el.profileSubscription.textContent = "Подписка: бессрочно";
+    el.subscriptionMeterBar.style.width = "100%";
+    el.subscriptionMeterBar.className = "";
+  } else {
+    el.profileSubscription.textContent = user.subscriptionState === "expired" ? "Подписка истекла — чат заблокирован" : `Подписка до ${dateText(user.subscriptionEndsAt)} · осталось ${days} дн.`;
+    el.subscriptionMeterBar.style.width = `${Math.max(0, Math.min(100, (days / 30) * 100))}%`;
+    el.subscriptionMeterBar.className = user.subscriptionState === "expired" ? "expired" : user.subscriptionState === "expiring" ? "expiring" : "";
+  }
   el.currentRole.textContent = roleName(user.role);
   const isAdmin = ["admin", "super_admin"].includes(user.role); el.adminPanel.classList.toggle("hidden", !isAdmin);
   if (user.status === "active" && user.subscriptionState !== "expired") { loadContacts(); loadGroups(); } else el.contactsList.innerHTML = `<p class="muted">${user.subscriptionState === "expired" ? "Подписка истекла. Переписка временно недоступна, но поддержка работает." : "Аккаунт ожидает подтверждения администратора."}</p>`;
@@ -786,7 +792,7 @@ async function loadUsers() {
       if (user.status === "suspended" && isHead) actions.push(`<button class="mini-button" data-action="restore" data-user-id="${user.id}" type="button">Восстановить</button>`);
       if (!self && user.role !== "super_admin") actions.push(`<button class="mini-button" data-action="sessions" data-user-id="${user.id}" type="button">Завершить сессии</button>`);
       if (isHead && !self && user.status !== "pending" && user.role !== "super_admin") actions.push(`<button class="mini-button" data-action="role" data-role="${user.role === "admin" ? "user" : "admin"}" data-user-id="${user.id}" type="button">${user.role === "admin" ? "Снять админа" : "Сделать админом"}</button>`);
-      return `<div class="user-row user-control"><div><strong>${escapeHtml(user.displayName||user.nickname)}${self ? " · Вы" : ""}</strong><small>@${escapeHtml(user.nickname)} · ${escapeHtml(user.fibroId||"—")}</small><small>${escapeHtml(roleName(user.role))} · ${escapeHtml(statusName(user.status))}${user.suspendedUntil?` до ${dateText(user.suspendedUntil)}`:""}</small><small>Регистрация: ${dateText(user.createdAt)} · Подписка до ${dateText(user.subscriptionEndsAt)}</small></div><div class="user-actions">${actions.join("")}</div></div>`;
+      return `<div class="user-row user-control"><div><strong>${escapeHtml(user.displayName||user.nickname)}${self ? " · Вы" : ""}</strong><small>@${escapeHtml(user.nickname)} · ${escapeHtml(user.fibroId||"—")}</small><small>${escapeHtml(roleName(user.role))} · ${escapeHtml(statusName(user.status))}${user.suspendedUntil?` до ${dateText(user.suspendedUntil)}`:""}</small><small>Регистрация: ${dateText(user.createdAt)} · ${user.subscriptionLifetime||user.role==="super_admin"?"Подписка: бессрочно":`Подписка до ${dateText(user.subscriptionEndsAt)}`}</small></div><div class="user-actions">${actions.join("")}</div></div>`;
     }).join("");
   } catch (error) { el.usersList.textContent = error.message; }
 }

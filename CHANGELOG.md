@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0-alpha7.6.1
+
+- Суперадминистратор получил бессрочную подписку на уровне серверной авторизации.
+- Истёкшая историческая дата подписки больше не блокирует головной аккаунт.
+- Для суперадминистратора отключены уведомления об истечении и продление подписки.
+- Интерфейс показывает «Подписка: бессрочно».
+
 ## 0.7.0-alpha7.6
 - Messenger Experience chat polish with date separators and progressive history rendering.
 - Multi-file encrypted attachments (up to 6 per message), desktop drag & drop, and decrypted image/video/PDF preview.

@@ -383,7 +383,7 @@ body{background:radial-gradient(circle at 8% 8%,rgba(79,70,229,.25),transparent 
 .call-metrics{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:-14px 0 24px;color:#99a8c9;font-size:12px}
 .call-metrics span{padding:5px 8px;border:1px solid rgba(151,166,210,.18);border-radius:999px;background:rgba(8,14,29,.35)}
 
-/* FibroChat v0.7.0-alpha7.5 — Visible bottom navigation hotfix */
+/* FibroChat v0.7.0-alpha7.7 — Visible bottom navigation hotfix */
 :root{
   --alpha74-topbar-height:104px;
   --alpha74-dock-height:88px;
@@ -617,7 +617,7 @@ body{background:radial-gradient(circle at 8% 8%,rgba(79,70,229,.25),transparent 
 .workspace-alpha74>.fibro-navigation{visibility:visible;opacity:1;pointer-events:auto;}
 
 
-/* FibroChat v0.7.0-alpha7.5 — smart invitations and guided onboarding */
+/* FibroChat v0.7.0-alpha7.7 — smart invitations and guided onboarding */
 .fibro-onboarding{position:fixed;inset:0;z-index:100500;display:grid;place-items:center;padding:18px;background:rgba(5,9,20,.78);backdrop-filter:blur(10px)}
 .fibro-onboarding.hidden{display:none}
 .onboarding-card{width:min(560px,100%);max-height:calc(100dvh - 36px);overflow:auto;border:1px solid var(--border,#40517d);border-radius:24px;padding:22px;background:var(--panel,#10182c);color:var(--text,#fff);box-shadow:0 24px 70px rgba(0,0,0,.45)}
@@ -648,3 +648,11 @@ body{background:radial-gradient(circle at 8% 8%,rgba(79,70,229,.25),transparent 
 .chat-view.drag-active:after{content:"Отпустите файлы, чтобы прикрепить";position:absolute;inset:14px;z-index:20;display:grid;place-items:center;border:2px dashed #7c8cff;border-radius:22px;background:rgba(10,16,32,.88);color:#eef2ff;font-weight:800;pointer-events:none}.chat-view{position:relative}
 @media(max-width:600px){.attachment-grid{grid-template-columns:1fr}.attachment-viewer{padding:0}.attachment-viewer-card{width:100%;height:100dvh;border-radius:0}.voice-card{min-width:230px}.message-actions{opacity:.9}}
 @media(prefers-reduced-motion:reduce){.bubble{animation:none}.messages-list{scroll-behavior:auto}}
+
+/* Alpha 7.7 Stability & Security diagnostics. */
+.diagnostics-panel{margin:14px 0 18px;padding:14px;border:1px solid var(--fibro-line,#27324e);border-radius:16px;background:rgba(8,13,25,.48)}
+.diagnostics-panel .section-head{margin:0 0 10px}.diagnostics-panel .section-head h4{margin:0}.diagnostics-panel .section-head p{margin:3px 0 0;color:var(--muted,#8f9ab7);font-size:12px}
+.diagnostics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}.diagnostic-card{display:grid;gap:4px;padding:10px;border-radius:12px;background:#10182c;border:1px solid #283556}.diagnostic-card span{font-size:11px;color:#93a0bd}.diagnostic-card strong{font-size:13px;overflow-wrap:anywhere}.diagnostics-panel>div>small{display:block;margin-top:6px;color:#8f9ab7}
+@media(max-width:760px){.diagnostics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.diagnostic-errors{margin-top:10px;padding-top:8px;border-top:1px solid #283556}.diagnostic-errors summary{cursor:pointer;color:#cbd5e1}.diagnostic-errors>div{display:grid;gap:3px;margin-top:7px;padding:8px;border-radius:10px;background:#151827}.diagnostic-errors code{font-size:10px;color:#fca5a5}.diagnostic-errors span{font-size:12px}.diagnostic-errors small{font-size:10px;color:#8f9ab7}

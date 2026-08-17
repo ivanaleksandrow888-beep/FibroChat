@@ -1,3 +1,9 @@
+## 0.7.0-alpha7.7 — Stability & Security
+- API rate limiting and public invite anti-spam.
+- Request-size hardening and structured error trace IDs.
+- Security headers/CSP.
+- Admin diagnostics for storage, TURN, Push, realtime, sessions and attachment usage.
+
 # Changelog
 
 ## 0.7.0-alpha7.6.1

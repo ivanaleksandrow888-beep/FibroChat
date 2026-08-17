@@ -163,6 +163,23 @@ class FibroStore {
     setInterval(()=>this.pool.query("UPDATE cluster_nodes SET last_seen_at=now(),status='online' WHERE node_id=$1",[nodeId]).catch(()=>null),10000).unref();
   }
 
+  async diagnostics() {
+    const collections = {};
+    for (const name of Object.keys(COLLECTION_TABLES)) collections[name] = (this.collections.get(name) || []).length;
+    const result = { mode: this.mode, healthy: true, collections, postgres: null };
+    if (this.mode === "postgresql") {
+      const started = Date.now();
+      try {
+        await this.pool.query("SELECT 1");
+        result.postgres = { connected: true, latencyMs: Date.now() - started, poolTotal: this.pool.totalCount, poolIdle: this.pool.idleCount, poolWaiting: this.pool.waitingCount };
+      } catch (error) {
+        result.healthy = false;
+        result.postgres = { connected: false, error: String(error?.message || error).slice(0, 200) };
+      }
+    }
+    return result;
+  }
+
   async close() { if(this.refreshTimer)clearInterval(this.refreshTimer);await this.flush();if(this.pool)await this.pool.end(); }
 }
 

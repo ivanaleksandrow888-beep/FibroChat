@@ -1,6 +1,6 @@
 "use strict";
 
-const CLIENT_VERSION = "0.7.0-alpha7.6.1";
+const CLIENT_VERSION = "0.7.0-alpha7.7";
 const CLIENT_PROTOCOL = "1.2";
 
 const state = {
@@ -61,7 +61,7 @@ const el = {
   currentPassword: $("#current-password"), newPassword: $("#new-password"), newPasswordConfirm: $("#new-password-confirm"), changePassword: $("#change-password"), passwordMessage: $("#password-message"),
   profileAvatarPreview: $("#profile-avatar-preview"), profileAvatarFile: $("#profile-avatar-file"), profileAvatarRemove: $("#profile-avatar-remove"), profileEditorName: $("#profile-editor-name"), profileCreatedAt: $("#profile-created-at"), profileDisplayName: $("#profile-display-name"), profileBio: $("#profile-bio"), profilePageFibroId: $("#profile-page-fibro-id"), profilePageCopyId: $("#profile-page-copy-id"), profileQr: $("#profile-qr"), profileShareLink: $("#profile-share-link"), privacyProfile: $("#privacy-profile"), privacyFirstMessage: $("#privacy-first-message"), privacyDiscovery: $("#privacy-discovery"), privacyInvites: $("#privacy-invites"), saveProfile: $("#save-profile"), profileMessage: $("#profile-message"), blockedList: $("#blocked-list"),
   networkProfileFile: $("#network-profile-file"), networkProfileResult: $("#network-profile-result"), profileNetworkName: $("#profile-network-name"), profileNetworkId: $("#profile-network-id"), openProfileNetwork: $("#open-profile-network"), networkProfileMessage: $("#network-profile-message"),
-  networkNameInput: $("#network-name-input"), networkUrlInput: $("#network-url-input"), saveNetworkSettings: $("#save-network-settings"), downloadNetworkProfile: $("#download-network-profile"), networkSettingsMessage: $("#network-settings-message"), networkBackupPassword: $("#network-backup-password"), downloadNetworkBackup: $("#download-network-backup"), networkBackupMessage: $("#network-backup-message")
+  networkNameInput: $("#network-name-input"), networkUrlInput: $("#network-url-input"), saveNetworkSettings: $("#save-network-settings"), downloadNetworkProfile: $("#download-network-profile"), networkSettingsMessage: $("#network-settings-message"), networkBackupPassword: $("#network-backup-password"), downloadNetworkBackup: $("#download-network-backup"), networkBackupMessage: $("#network-backup-message"), diagnosticsSummary: $("#diagnostics-summary"), refreshDiagnostics: $("#refresh-diagnostics")
 };
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -763,7 +763,21 @@ async function loadSupport() {
   } catch (error) { el.supportList.innerHTML = `<p class="message">${escapeHtml(error.message)}</p>`; }
 }
 
-async function loadAdmin() { await Promise.all([loadDashboard(), loadUsers(), loadAudit(), loadSecurityActivity(), loadInvites(), loadInviteRequests()]); }
+async function loadAdmin() { await Promise.all([loadDashboard(), loadUsers(), loadAudit(), loadSecurityActivity(), loadInvites(), loadInviteRequests(), loadDiagnostics()]); }
+async function loadDiagnostics(){
+  if(!el.diagnosticsSummary)return;
+  try{
+    const data=await api("/api/admin/diagnostics",{method:"GET"});const d=data.diagnostics;
+    const formatBytes=(value)=>{const n=Number(value)||0;if(n<1024)return `${n} Б`;if(n<1048576)return `${(n/1024).toFixed(1)} КБ`;return `${(n/1048576).toFixed(1)} МБ`;};
+    const items=[
+      ["Версия",d.version],["База",`${d.storage.mode}${d.storage.healthy?" · OK":" · ошибка"}`],["TURN",d.turn.configured?`включён (${d.turn.mode})`:"не настроен"],["Push",d.push.configured?`OK · ${d.push.subscriptions} подписок`:"не настроен"],
+      ["Онлайн",`${d.realtime.onlineUsers} пользователей · ${d.realtime.sseConnections} SSE`],["Сессии",`${d.sessions.active} активных`],["Вложения",`${d.attachments.count} · ${formatBytes(d.attachments.storedBytes)}`],["Uptime",`${Math.floor(d.uptimeSeconds/60)} мин`],["Ошибки",d.recentErrors?.length?`${d.recentErrors.length} последних`:"нет"]
+    ];
+    const pg=d.storage.postgres?`<small>PostgreSQL: ${d.storage.postgres.connected?`OK · ${d.storage.postgres.latencyMs} мс`:escapeHtml(d.storage.postgres.error||"ошибка")}</small>`:"";
+    const errors=(d.recentErrors||[]).slice(0,3);const errorHtml=errors.length?`<details class="diagnostic-errors"><summary>Последние ошибки сервера</summary>${errors.map(e=>`<div><code>${escapeHtml(e.traceId||"—")}</code><span>${escapeHtml(e.code||"ERROR")} · ${escapeHtml(e.message||"")}</span><small>${escapeHtml(e.time||"")}</small></div>`).join("")}</details>`:"";el.diagnosticsSummary.innerHTML=`<div class="diagnostics-grid">${items.map(([label,value])=>`<div class="diagnostic-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(value))}</strong></div>`).join("")}</div>${pg}<small>Лимиты: JSON ${formatBytes(d.limits.jsonBodyBytes)} · файл ${formatBytes(d.limits.attachmentBytes)} · API ${d.limits.apiRequests}/${Math.round(d.limits.apiWindowMs/1000)}с</small>${errorHtml}`;
+  }catch(error){el.diagnosticsSummary.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;}
+}
+
 async function loadDashboard() {
   try {
     const data = await api("/api/admin/dashboard", { method: "GET" });
@@ -940,6 +954,7 @@ el.supportList.addEventListener("click", async (event) => { const button = event
 
 
 el.networkProfileFile?.addEventListener("change",()=>importNetworkProfileFile(el.networkProfileFile.files?.[0]));
+el.refreshDiagnostics?.addEventListener("click",loadDiagnostics);
 el.saveNetworkSettings?.addEventListener("click",async()=>{el.networkSettingsMessage.textContent="Сохранение…";try{await api("/api/admin/network/settings",{method:"POST",body:JSON.stringify({networkName:el.networkNameInput.value,publicBaseUrl:el.networkUrlInput.value})});el.networkSettingsMessage.textContent="Настройки сети сохранены.";el.networkSettingsMessage.className="message success";await loadDashboard();await checkHealth();}catch(error){el.networkSettingsMessage.textContent=error.message;el.networkSettingsMessage.className="message";}});
 el.downloadNetworkProfile?.addEventListener("click",async()=>{el.networkSettingsMessage.textContent="Подготовка профиля…";try{await authenticatedDownload("/api/admin/network/profile",{method:"GET"},"fibrochat-network.fibronet.json");el.networkSettingsMessage.textContent="Профиль сети скачан.";el.networkSettingsMessage.className="message success";}catch(error){el.networkSettingsMessage.textContent=error.message;el.networkSettingsMessage.className="message";}});
 el.downloadNetworkBackup?.addEventListener("click",async()=>{const password=el.networkBackupPassword.value;if(password.length<12){el.networkBackupMessage.textContent="Введите пароль длиной минимум 12 символов.";return;}el.networkBackupMessage.textContent="Шифрование резервной копии…";try{await authenticatedDownload("/api/admin/network/backup",{method:"POST",body:JSON.stringify({password})},"fibrochat-network-backup.json");el.networkBackupPassword.value="";el.networkBackupMessage.textContent="Зашифрованная копия сети скачана.";el.networkBackupMessage.className="message success";}catch(error){el.networkBackupMessage.textContent=error.message;el.networkBackupMessage.className="message";}});
